@@ -1,0 +1,15 @@
+build/
+build-*/
+.ninja_*
+compile_commands.json
+*.out
+*.bin
+*.hex
+*.map
+*.obj
+*.o
+__pycache__/
+*.pyc
+.venv*/
+tools/imu/logs/
+tools/pid/logs/

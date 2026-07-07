@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
+
+image_file="${1:-$BIN_FILE}"
+
+if [[ -z "${JLINK_EXE:-}" || ! -x "$JLINK_EXE" ]]; then
+  echo '未找到 JLinkExe。'
+  echo '请确认 SEGGER J-Link Software Pack 已安装，或设置 JLINK_EXE。'
+  exit 2
+fi
+
+if [[ ! -f "$image_file" ]]; then
+  echo "未找到待烧录二进制: $image_file"
+  echo '请先完成 Build。'
+  exit 2
+fi
+
+mkdir -p "$BUILD_DIR/tmp"
+cmd_file="$(mktemp "$BUILD_DIR/tmp/jlink_cmd.XXXXXX")"
+trap 'rm -f "$cmd_file"' EXIT
+
+cat >"$cmd_file" <<EOF
+r
+h
+loadfile $image_file, 0x00000000
+r
+g
+q
+EOF
+
+set +e
+jlink_output="$("$JLINK_EXE" \
+  -device "$JLINK_DEVICE" \
+  -if SWD \
+  -speed "$JLINK_SPEED_KHZ" \
+  -autoconnect 1 \
+  -NoGui 1 \
+  -CommandFile "$cmd_file" 2>&1)"
+jlink_status=$?
+set -e
+
+printf '%s\n' "$jlink_output"
+
+if [[ "$jlink_status" -ne 0 ]] ||
+   grep -Eiq 'Error occurred|Could not connect|Cannot connect to the probe/programmer|J-Link connection not established|Failed to initialize|No PWR-AP detected|Target connection not established' <<<"$jlink_output"; then
+  echo 'J-Link 烧录失败：未能连接或下载到目标芯片。'
+  exit 1
+fi
