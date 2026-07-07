@@ -108,6 +108,10 @@ set(APP_SOURCES
   middleware/rtt_log.c
   middleware/telemetry.c
   app/app_main.c
+  app/app_mission.c
+  app/app_shared.c
+  app/app_state.c
+  app/app_tasks.c
   ${TDK_ICM45686_SOURCES}
 )
 

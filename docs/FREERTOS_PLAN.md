@@ -33,3 +33,22 @@ logger    20-100 ms  blackbox or SD-card logging
 
 Avoid adding tasks just because a module exists. A task should represent timing
 or blocking behavior.
+
+## Current App Files
+
+```text
+app_main.c     initializes BSP, middleware and telemetry bindings
+app_tasks.c    owns FreeRTOS task functions
+app_state.c    consumes commands and changes IDLE/RUN/FAULT
+app_mission.c  computes targets for the current mission state
+app_shared.c   holds small cross-task snapshots
+```
+
+The control task order is intentionally fixed:
+
+```text
+consume commands -> update mission state -> run chassis control -> delay until next period
+```
+
+Keep H1/H2/H3 logic inside the state/mission path. Do not create one task per
+contest problem unless that problem truly has different timing or blocking I/O.

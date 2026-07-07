@@ -13,8 +13,19 @@ middleware/  PID, filters, chassis control, telemetry
 app/         FreeRTOS tasks and contest strategy hooks
 ```
 
-FreeRTOS is the scheduler, not a sixth architecture layer. The default app
-creates three tasks:
+FreeRTOS is the scheduler, not a sixth architecture layer. The app layer is
+split so task scheduling, state transitions, and contest strategy stay
+separate:
+
+```text
+app_main.c     hardware/module init and telemetry binding
+app_tasks.c    FreeRTOS task bodies and task creation
+app_state.c    IDLE/RUN/FAULT state transitions and command handling
+app_mission.c  contest strategy hook; default is a basic line-follow example
+app_shared.c   cross-task snapshots and shared runtime state
+```
+
+The default app creates three tasks:
 
 ```text
 fast      5 ms   encoder, IMU, fast sensor sampling
@@ -73,6 +84,7 @@ Logs are written to `tools/imu/logs/`.
 
 ## Where To Add Contest Logic
 
-Keep hardware-independent strategy in `app/` or add a small
-`middleware/control/mission_*` module. Do not put route logic into BSP or
-drivers. BSP should only bind physical pins and peripherals to virtual devices.
+Start in `app/app_mission.c`. If a strategy becomes reusable or algorithmic,
+move that algorithm into `middleware/control/` and keep `app_mission.c` as the
+state-machine owner. Do not put route logic into BSP or drivers. BSP should
+only bind physical pins and peripherals to virtual devices.

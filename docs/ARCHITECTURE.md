@@ -46,3 +46,11 @@ Examples: PID, chassis odometry/control, line tracking, telemetry.
 Owns the state machine, FreeRTOS tasks, and contest strategy. The template app
 contains only a conservative run/stop skeleton and one basic line-following
 example.
+
+```text
+app_main.c     init and binding
+app_tasks.c    FreeRTOS scheduling
+app_state.c    state transitions
+app_mission.c  H1/H2/H3 strategy hook
+app_shared.c   runtime snapshots
+```
