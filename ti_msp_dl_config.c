@@ -55,6 +55,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_PWM_MOTOR_init();
     SYSCFG_DL_I2C_INST_init();
     SYSCFG_DL_UART_DEBUG_init();
+    SYSCFG_DL_WWDT0_init();
     SYSCFG_DL_SYSCTL_CLK_init();
     /* Ensure backup structures have no valid state */
 	gPWM_MOTORBackup.backupRdy 	= false;
@@ -73,8 +74,6 @@ SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
 
     return retStatus;
 }
-
-
 SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
 {
     bool retStatus = true;
@@ -91,12 +90,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_TimerA_reset(PWM_MOTOR_INST);
     DL_I2C_reset(I2C_INST_INST);
     DL_UART_Main_reset(UART_DEBUG_INST);
+    DL_WWDT_reset(WWDT0_INST);
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
     DL_TimerA_enablePower(PWM_MOTOR_INST);
     DL_I2C_enablePower(I2C_INST_INST);
     DL_UART_Main_enablePower(UART_DEBUG_INST);
+    DL_WWDT_enablePower(WWDT0_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
 
@@ -370,5 +371,27 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_DEBUG_init(void)
     DL_UART_Main_setTXFIFOThreshold(UART_DEBUG_INST, DL_UART_TX_FIFO_LEVEL_ONE_ENTRY);
 
     DL_UART_Main_enable(UART_DEBUG_INST);
+}
+
+SYSCONFIG_WEAK void SYSCFG_DL_WWDT0_init(void)
+{
+    /*
+     * Initialize WWDT0 in Watchdog mode with following settings
+     *   Watchdog Source Clock = (LFCLK Freq) / (WWDT Clock Divider)
+     *                         = 32768Hz / 4 = 8.19 kHz
+     *   Watchdog Period       = (WWDT Clock Divider) ∗ (WWDT Period Count) / 32768Hz
+     *                         = 4 * 2^12 / 32768Hz = 500.00 ms
+     *   Window0 Closed Period = (WWDT Period) * (Window0 Closed Percent)
+     *                         = 500.00 ms * 0% = 0.00 s
+     *   Window1 Closed Period = (WWDT Period) * (Window1 Closed Percent)
+     *                         = 500.00 ms * 0% = 0.00 s
+     */
+    DL_WWDT_initWatchdogMode(WWDT0_INST, DL_WWDT_CLOCK_DIVIDE_4,
+        DL_WWDT_TIMER_PERIOD_12_BITS, DL_WWDT_RUN_IN_SLEEP,
+        DL_WWDT_WINDOW_PERIOD_0, DL_WWDT_WINDOW_PERIOD_0);
+
+    /* Set Window0 as active window */
+    DL_WWDT_setActiveWindow(WWDT0_INST, DL_WWDT_WINDOW0);
+
 }
 

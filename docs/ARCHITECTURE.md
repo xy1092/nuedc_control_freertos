@@ -1,56 +1,54 @@
 # Architecture
 
-The template uses five layers.
+This firmware is a modular monolith: shared platform code is horizontal, while
+hardware capabilities are vertical modules.
 
 ```text
 app
-middleware
-devices
-bsp
-drivers
+ |-- control
+ |-- module public APIs
+       |-- service/state owner
+       |-- device implementation
+             |-- platform drivers
+                   |-- TI DriverLib
 ```
 
-## drivers
+`app/` owns task creation, contest state and mission flow. `control/` contains
+algorithms that combine module data. `modules/` owns hardware capabilities and
+their state. `platform/` owns the MCU, generated names and physical pins.
+`system/` owns faults, task liveness and reset policy.
 
-Small wrappers over MSPM0 DriverLib or simple polling logic. They know about
-peripheral registers, not contest behavior.
+## Module Contract
 
-Examples: GPIO, PWM, UART, I2C, encoder polling, line-sensor GPIO reads.
+Each stateful module should provide:
 
-## bsp
+- one public API header;
+- one task or one explicit owner of mutable hardware state;
+- a timestamped snapshot for readers;
+- finite transport timeouts;
+- an initialization state and fault state;
+- a defined safe behavior for stale input;
+- a health heartbeat when safety critical.
 
-Board support binds logical hardware to physical pins from `pin_map.h`.
+Modules must not reach into another module's private device object. Cross-module
+coordination belongs in `control/` or `app/`.
 
-Examples: left/right motor instances, the IMU I2C bus, debug UART, line-sensor
-channel count.
+## Board Support
 
-## devices
+The board support portion of a module binds logical signals to
+`platform/mspm0g3507/pin_map.h`. It may select an I2C instance, GPIO or UART,
+but it must not implement filtering, calibration, route logic or UI behavior.
 
-Virtual devices hide real hardware details behind stable APIs.
+## IMU Ownership
 
-Examples:
+`imu_service.c` is the only owner of the ICM45688 instance. It performs the
+original startup and dynamic calibration flows, consumes DRDY at 200 Hz and
+publishes `ImuSnapshot_t` inside a FreeRTOS critical section. Other tasks never
+touch the I2C bus or TDK object directly.
 
-- `DevMotor`: signed motor duty and encoder state
-- `DevLineSensor`: 7/8-channel line position, contrast, on-line state
-- `DevIcm45686`: ICM45686/ICM45688-class IMU sample conversion
-- `DevVision`: small UART packet parser for future vision targets
+## Failure Containment
 
-## middleware
-
-Reusable logic above devices and BSP.
-
-Examples: PID, chassis odometry/control, line tracking, telemetry.
-
-## app
-
-Owns the state machine, FreeRTOS tasks, and contest strategy. The template app
-contains only a conservative run/stop skeleton and one basic line-following
-example.
-
-```text
-app_main.c     init and binding
-app_tasks.c    FreeRTOS scheduling
-app_state.c    state transitions
-app_mission.c  H1/H2/H3 strategy hook
-app_shared.c   runtime snapshots
-```
+The health task is the only code that feeds WWDT0. A missed heartbeat causes
+the fault manager to stop motor output and withhold the feed. If scheduling or
+interrupts are globally stuck, the independent 500 ms WWDT still resets the
+MCU.

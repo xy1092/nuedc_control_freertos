@@ -1,8 +1,8 @@
 #include "app_state.h"
 #include "app_shared.h"
-#include "../bsp/bsp_motor.h"
-#include "../middleware/control/chassis.h"
-#include "../middleware/telemetry.h"
+#include "bsp_motor.h"
+#include "chassis.h"
+#include "telemetry.h"
 
 AppState_t App_GetState(void)
 {
@@ -35,7 +35,7 @@ void App_State_Tick(uint32_t now_ms)
         App_State_Set(APP_STATE_IDLE);
     }
 
-    if (Telemetry_ConsumeStartRequest()) {
+    if (Telemetry_ConsumeStartRequest() && ctx->imu_ready) {
         ControlPose2D_t zero_pose = { 0.0f, 0.0f, 0.0f };
         Control_Chassis_ResetOdometry(&ctx->chassis, zero_pose);
         App_State_Set(APP_STATE_RUN);

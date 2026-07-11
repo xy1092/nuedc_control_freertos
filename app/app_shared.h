@@ -2,8 +2,8 @@
 #define APP_SHARED_H
 
 #include "app_main.h"
-#include "../middleware/control/chassis.h"
-#include "../middleware/pid.h"
+#include "chassis.h"
+#include "pid.h"
 #include <stdint.h>
 
 typedef struct {

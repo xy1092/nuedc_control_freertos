@@ -1,90 +1,117 @@
-# NUEDC Control Template
+# NUEDC Control FreeRTOS
 
-Clean MSPM0G3507 electric-contest car firmware template.
+MSPM0G3507 modular electric-contest car firmware. The project combines the
+car-control template with the calibrated ICM45688 implementation from
+`xy1092/mspm0-bmi088-icm45688`.
 
-This repository is intentionally separate from any finished car project. It is
-a reusable starting point with five code layers:
-
-```text
-drivers/     low-level peripheral wrappers
-bsp/         board support and pin binding
-devices/     virtual devices such as motors, line sensor, IMU, vision
-middleware/  PID, filters, chassis control, telemetry
-app/         FreeRTOS tasks and contest strategy hooks
-```
-
-FreeRTOS is the scheduler, not a sixth architecture layer. The app layer is
-split so task scheduling, state transitions, and contest strategy stay
-separate:
+## Architecture
 
 ```text
-app_main.c     hardware/module init and telemetry binding
-app_tasks.c    FreeRTOS task bodies and task creation
-app_state.c    IDLE/RUN/FAULT state transitions and command handling
-app_mission.c  contest strategy hook; default is a basic line-follow example
-app_shared.c   cross-task snapshots and shared runtime state
+app/                    task composition, state machine, contest mission
+control/                chassis, line tracking and control algorithms
+common/                 PID, filters and shared algorithms
+modules/                vertical hardware modules with public service APIs
+  imu/                   ICM45688 service, profile, BSP and device code
+  motor/                 motor device and board binding
+  encoder/               wheel encoder board binding
+  line_sensor/           digital line sensor module
+  telemetry/             UART command and telemetry module
+  vision/                optional K230/OpenMV module
+platform/mspm0g3507/     DriverLib wrappers, pin map and SysConfig
+system/                  health monitor, fault manager and watchdog
+third_party/             vendor sources
 ```
 
-The default app creates three tasks:
+Dependencies point downward:
 
 ```text
-fast      5 ms   encoder, IMU, fast sensor sampling
-ctrl     10 ms   state machine and chassis/line control
-telem    10 ms   serial telemetry and command handling
+app -> control/module public API -> device -> platform driver -> DriverLib
 ```
 
-## Hardware Interfaces
+No application or control file may use SysConfig pin macros directly. Board
+changes belong in `platform/mspm0g3507/`.
 
-- 7/8-channel digital line sensor
-- A/B H-bridge motor outputs
-- quadrature encoder interface
-- ICM45686/ICM45688-class IMU over I2C
-- optional K230/OpenMV-style vision UART
-- debug UART telemetry at 115200 baud
+## FreeRTOS Reliability
 
-Pin changes should be made in `nuedc_control_template.syscfg` and `pin_map.h`.
-Upper layers should use BSP/device interfaces instead of SysConfig macros.
+| Task | Period/source | Priority | Health deadline |
+| --- | ---: | ---: | ---: |
+| health | 20 ms | 5 | owns WWDT feed |
+| imu | ICM45688 DRDY, 200 Hz | 4 | 100 ms |
+| fast | 5 ms | 4 | 50 ms |
+| control | 10 ms | 3 | 100 ms |
+| telemetry | 10 ms | 2 | 500 ms |
+
+Tasks are statically allocated. WWDT0 has a 500 ms period and is fed only when
+all task heartbeats are current and no system fault is active. A stale task
+immediately stops both motors and prevents further watchdog feeds. The motor
+module also stops non-zero output when commands have not been refreshed for
+100 ms.
+
+## ICM45688
+
+The sensor algorithm is taken from the calibrated source project. The device
+code retains its 200 Hz configuration, Mahony implementation, sample filters,
+stationary yaw lock, bias learning and dynamic calibration math. Calibrated
+application values are isolated in `modules/imu/imu_profile.c`:
+
+- sample period `0.005 s`, complementary alpha `0.98`
+- accelerometer `+/-16 g`, gyroscope `+/-1000 dps`
+- hardware bandwidth ODR/4 and 30 Hz accelerometer sample LPF
+- stationary thresholds `1.5 dps`, `0.08 g`, hold `5` samples
+- acceleration trust window `0.15 g`, rejection angle `10 deg`
+- Mahony gains `Kp=1.0`, `Ki=0.0`
+- static calibration: 200 warm-up + 2000 samples, stddev limit `0.50 dps`
+- bias learning rate `0.002`
+- calibrated Z scale `0.994821`
+
+The service owns the sensor and publishes an atomic `ImuSnapshot_t`. During
+startup calibration the car stays in IDLE while the IMU task continues sending
+health heartbeats.
+
+Current template wiring uses I2C1 at 400 kHz:
+
+| Signal | MSPM0G3507 pin |
+| --- | --- |
+| ICM45688 SDA | PA16 |
+| ICM45688 SCL | PA17 |
+| ICM45688 INT1 | PA15 |
+| ICM45688 address | 0x68 |
+
+See `docs/IMU_PORTING.md` for the pending SPI placeholders.
 
 ## Build
 
 ```bash
-cd /home/xy/ti-workspace/projects/nuedc_control_template
+cd /home/xy/ti-workspace/projects/nuedc_control_freertos
 ./scripts/build.sh
 ```
 
-Output files are placed under `build-fw/`.
+Artifacts are written to `build-fw/nuedc_control_freertos.{out,hex,bin}`.
 
-## Serial Commands
-
-```text
-s or $START          enter run state
-x or $STOP           stop motors
-$DUTY,300,300,800    direct motor PWM test for 800 ms
-$RATE,100            telemetry rate in Hz
-$RAWLINE,1           enable raw line-sensor stream
-$RAWIMU,1            enable IMU stream
-$PAUSE/$RESUME       pause/resume normal chassis telemetry
-$DUMP                print telemetry flags
-```
-
-The IMU stream is:
+## Commands
 
 ```text
-$I,<ts_ms>,<pitch_deg>,<roll_deg>,<yaw_deg>,<gx_dps>,<gy_dps>,<gz_dps>,<ax_g>,<ay_g>,<az_g>,<ready>
+s or $START             enter RUN after the IMU is ready
+x or $STOP              stop the car
+$DUTY,300,300,800       direct motor test for 800 ms
+$RATE,100               telemetry rate
+$RAWLINE,1              enable line sensor stream
+$RAWIMU,1               enable IMU stream
+$IMUCAL,START           start the original +4/-4 turn yaw calibration
+$IMUCAL,CANCEL          cancel calibration and restore the previous scale
+$PAUSE / $RESUME        pause/resume chassis telemetry
+$DUMP                   print telemetry configuration
 ```
 
-## IMU Static/Dynamic Capture
+## Adding A Module
 
-```bash
-python3 tools/imu/imu_capture.py --port /dev/ttyACM0 --mode static --duration 60 --rate 100
-python3 tools/imu/imu_capture.py --port /dev/ttyACM0 --mode dynamic --duration 20 --rate 100
-```
+1. Add a self-contained directory under `modules/<name>/`.
+2. Expose only the stable public API in one header.
+3. Put MCU-independent device behavior inside the module.
+4. Add pin/peripheral aliases only under `platform/mspm0g3507/`.
+5. Give a stateful module one owning task and publish snapshots to consumers.
+6. Register its heartbeat and finite deadline if it is safety critical.
+7. Add sources and include paths explicitly in `CMakeLists.txt`.
 
-Logs are written to `tools/imu/logs/`.
-
-## Where To Add Contest Logic
-
-Start in `app/app_mission.c`. If a strategy becomes reusable or algorithmic,
-move that algorithm into `middleware/control/` and keep `app_mission.c` as the
-state-machine owner. Do not put route logic into BSP or drivers. BSP should
-only bind physical pins and peripherals to virtual devices.
+The module must use finite communication timeouts and must define its safe
+output when data or commands become stale.

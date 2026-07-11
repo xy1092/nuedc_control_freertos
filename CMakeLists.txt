@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(nuedc_control_template LANGUAGES C ASM)
+project(nuedc_control_freertos LANGUAGES C ASM)
 
 set(APP_TARGET ${PROJECT_NAME})
 set(CMAKE_EXECUTABLE_SUFFIX ".out")
@@ -74,9 +74,9 @@ set(FREERTOS_SOURCES
   ${MSPM0_SDK_ROOT}/kernel/freertos/Source/portable/GCC/ARM_CM0/portasm.c
 )
 
-set(TDK_ICM45686_SOURCES
-  third_party/tdk_icm45686/src/imu/inv_imu_driver.c
-  third_party/tdk_icm45686/src/imu/inv_imu_transport.c
+set(TDK_ICM45688_SOURCES
+  third_party/tdk_icm45688/src/imu/inv_imu_driver.c
+  third_party/tdk_icm45688/src/imu/inv_imu_transport.c
 )
 
 set(APP_SOURCES
@@ -84,39 +84,44 @@ set(APP_SOURCES
   ti_msp_dl_config.c
   ${MSPM0_STARTUP_FILE}
   ${FREERTOS_SOURCES}
-  drivers/drv_gpio.c
-  drivers/drv_hbridge_motor.c
-  drivers/drv_i2c.c
-  drivers/drv_line_sensor.c
-  drivers/drv_pwm.c
-  drivers/drv_quad_encoder.c
-  drivers/drv_time.c
-  drivers/drv_uart.c
-  devices/dev_icm45686.c
-  devices/dev_line_sensor.c
-  devices/dev_motor.c
-  devices/dev_vision.c
-  bsp/bsp_adc.c
-  bsp/bsp_encoder.c
-  bsp/bsp_imu.c
-  bsp/bsp_motor.c
-  bsp/bsp_uart.c
-  middleware/control/chassis.c
-  middleware/control/line_tracker.c
-  middleware/filter.c
-  middleware/pid.c
-  middleware/rtt_log.c
-  middleware/telemetry.c
+  platform/mspm0g3507/drivers/drv_gpio.c
+  platform/mspm0g3507/drivers/drv_hbridge_motor.c
+  platform/mspm0g3507/drivers/drv_i2c.c
+  platform/mspm0g3507/drivers/drv_line_sensor.c
+  platform/mspm0g3507/drivers/drv_pwm.c
+  platform/mspm0g3507/drivers/drv_quad_encoder.c
+  platform/mspm0g3507/drivers/drv_time.c
+  platform/mspm0g3507/drivers/drv_uart.c
+  modules/motor/dev_motor.c
+  modules/motor/bsp_motor.c
+  modules/encoder/bsp_encoder.c
+  modules/line_sensor/dev_line_sensor.c
+  modules/line_sensor/bsp_adc.c
+  modules/imu/device/dev_icm45688.c
+  modules/imu/bsp_imu.c
+  modules/imu/imu_profile.c
+  modules/imu/imu_service.c
+  modules/vision/dev_vision.c
+  modules/telemetry/bsp_uart.c
+  modules/telemetry/rtt_log.c
+  modules/telemetry/telemetry.c
+  control/chassis.c
+  control/line_tracker.c
+  common/filter.c
+  common/pid.c
+  system/fault_manager.c
+  system/health_monitor.c
+  system/watchdog.c
   app/app_main.c
   app/app_mission.c
   app/app_shared.c
   app/app_state.c
   app/app_tasks.c
-  ${TDK_ICM45686_SOURCES}
+  ${TDK_ICM45688_SOURCES}
 )
 
 if(NUEDC_USE_K230)
-  list(APPEND APP_SOURCES bsp/bsp_k230.c)
+  list(APPEND APP_SOURCES modules/vision/bsp_k230.c)
 endif()
 
 add_executable(${APP_TARGET} ${APP_SOURCES})
@@ -125,11 +130,19 @@ target_include_directories(${APP_TARGET} PRIVATE
   "${CMAKE_SOURCE_DIR}"
   "${CMAKE_SOURCE_DIR}/config"
   "${CMAKE_SOURCE_DIR}/app"
-  "${CMAKE_SOURCE_DIR}/bsp"
-  "${CMAKE_SOURCE_DIR}/devices"
-  "${CMAKE_SOURCE_DIR}/drivers"
-  "${CMAKE_SOURCE_DIR}/middleware"
-  "${CMAKE_SOURCE_DIR}/third_party/tdk_icm45686/src"
+  "${CMAKE_SOURCE_DIR}/platform/mspm0g3507"
+  "${CMAKE_SOURCE_DIR}/platform/mspm0g3507/drivers"
+  "${CMAKE_SOURCE_DIR}/modules/motor"
+  "${CMAKE_SOURCE_DIR}/modules/encoder"
+  "${CMAKE_SOURCE_DIR}/modules/line_sensor"
+  "${CMAKE_SOURCE_DIR}/modules/imu"
+  "${CMAKE_SOURCE_DIR}/modules/imu/device"
+  "${CMAKE_SOURCE_DIR}/modules/vision"
+  "${CMAKE_SOURCE_DIR}/modules/telemetry"
+  "${CMAKE_SOURCE_DIR}/control"
+  "${CMAKE_SOURCE_DIR}/common"
+  "${CMAKE_SOURCE_DIR}/system"
+  "${CMAKE_SOURCE_DIR}/third_party/tdk_icm45688/src"
   "${MSPM0_SDK_ROOT}/source"
   "${MSPM0_SDK_ROOT}/source/third_party/CMSIS/Core/Include"
   "${MSPM0_SDK_ROOT}/kernel/freertos/Source/include"

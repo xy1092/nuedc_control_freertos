@@ -56,9 +56,9 @@ if [[ -z "${JLINK_GDB_SERVER:-}" && -n "${JLINK_EXE:-}" ]]; then
 fi
 
 export BUILD_DIR="${BUILD_DIR:-$PROJECT_DIR/build-fw}"
-export ELF_FILE="${ELF_FILE:-$BUILD_DIR/nuedc_control_template.out}"
-export BIN_FILE="${BIN_FILE:-$BUILD_DIR/nuedc_control_template.bin}"
-export HEX_FILE="${HEX_FILE:-$BUILD_DIR/nuedc_control_template.hex}"
+export ELF_FILE="${ELF_FILE:-$BUILD_DIR/nuedc_control_freertos.out}"
+export BIN_FILE="${BIN_FILE:-$BUILD_DIR/nuedc_control_freertos.bin}"
+export HEX_FILE="${HEX_FILE:-$BUILD_DIR/nuedc_control_freertos.hex}"
 export CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE:-$PROJECT_DIR/cmake/toolchains/arm-none-eabi-gcc.cmake}"
 export JLINK_DEVICE="${JLINK_DEVICE:-MSPM0G3507}"
 export JLINK_SPEED_KHZ="${JLINK_SPEED_KHZ:-1000}"

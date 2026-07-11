@@ -2,8 +2,8 @@
 #include "app_config.h"
 #include "app_main.h"
 #include "app_shared.h"
-#include "../middleware/control/chassis.h"
-#include "../middleware/control/line_tracker.h"
+#include "chassis.h"
+#include "line_tracker.h"
 
 static float clampf_local(float x, float lo, float hi)
 {

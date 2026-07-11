@@ -1,54 +1,26 @@
-# FreeRTOS Plan
+# FreeRTOS Runtime
 
-FreeRTOS is used as a scheduler. It does not replace the five-layer firmware
-architecture.
-
-## Default Tasks
+All application tasks use static task control blocks and stack buffers.
 
 ```text
-fast      priority 4   5 ms    encoder, IMU and fast sensor update
-ctrl      priority 3   10 ms   state machine and chassis control
-telem     priority 2   10 ms   UART telemetry and command processing
-idle      priority 0   default FreeRTOS idle task
+health   p5  20 ms       heartbeat validation and sole WWDT feed owner
+imu      p4  DRDY/5 ms   initialization, calibration and snapshot publishing
+fast     p4  5 ms        encoders, motor timeout and snapshot consumption
+control  p3  10 ms       state machine, mission and chassis control
+telem    p2  10 ms       UART commands and bounded telemetry output
 ```
 
-## Rules
+Periodic tasks use `vTaskDelayUntil`. The IMU task waits for latched DRDY with a
+50 ms finite timeout and yields for one tick while waiting.
 
-- Keep interrupt handlers short. Push work into tasks.
-- Do not block inside `fast` or `ctrl`.
-- Keep UART printing in `telem`.
-- Share state through small snapshots or single-owner modules first. Add queues
-  only when there is real cross-task buffering.
-- Motor stop/fault handling should be available from any task that detects a
-  serious error.
+## Recovery Levels
 
-## Suggested Future Split
+1. A transport operation times out and returns an error.
+2. The owning module retries or reinitializes its peripheral.
+3. A persistent module error raises a system fault and stops motors.
+4. The health task withholds the watchdog feed.
+5. WWDT0 resets the MCU within 500 ms.
 
-If the project grows, add:
-
-```text
-vision    20-50 ms   parses K230/OpenMV target packets
-logger    20-100 ms  blackbox or SD-card logging
-```
-
-Avoid adding tasks just because a module exists. A task should represent timing
-or blocking behavior.
-
-## Current App Files
-
-```text
-app_main.c     initializes BSP, middleware and telemetry bindings
-app_tasks.c    owns FreeRTOS task functions
-app_state.c    consumes commands and changes IDLE/RUN/FAULT
-app_mission.c  computes targets for the current mission state
-app_shared.c   holds small cross-task snapshots
-```
-
-The control task order is intentionally fixed:
-
-```text
-consume commands -> update mission state -> run chassis control -> delay until next period
-```
-
-Keep H1/H2/H3 logic inside the state/mission path. Do not create one task per
-contest problem unless that problem truly has different timing or blocking I/O.
+Startup has a two-second heartbeat grace period. The IMU task continues to beat
+during its 200 + 2000 sample static calibration, so calibration does not look
+like a dead task.

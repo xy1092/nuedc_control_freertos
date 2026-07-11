@@ -3,14 +3,16 @@
 #include "app_shared.h"
 #include "app_state.h"
 #include "app_tasks.h"
-#include "../bsp/bsp_adc.h"
-#include "../bsp/bsp_imu.h"
-#include "../bsp/bsp_motor.h"
-#include "../bsp/bsp_uart.h"
-#include "../middleware/control/chassis.h"
-#include "../middleware/control/line_tracker.h"
-#include "../middleware/pid.h"
-#include "../middleware/telemetry.h"
+#include "bsp_adc.h"
+#include "bsp_motor.h"
+#include "bsp_uart.h"
+#include "chassis.h"
+#include "line_tracker.h"
+#include "pid.h"
+#include "telemetry.h"
+#include "imu.h"
+#include "fault_manager.h"
+#include "health_monitor.h"
 
 static const ControlChassisConfig_t k_chassis_config = {
     APP_PULSES_PER_CM,
@@ -28,7 +30,9 @@ void App_Init(void)
     BSP_Motor_Init();
     BSP_Uart_Init();
     BSP_Adc_Init();
-    BSP_IMU_Init();
+    IMU_Service_Init();
+    System_Fault_Init();
+    System_Health_Init(0u);
 
     Control_Chassis_Init(&ctx->chassis, &k_chassis_config,
                          APP_SPEED_PID_KP, APP_SPEED_PID_KI,

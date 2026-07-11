@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 extern uint32_t SystemCoreClock;
+extern void vApplicationAssertHook(const char *file, int line);
 
 #define configENABLE_MPU                                0
 #define configCPU_CLOCK_HZ                              ((unsigned long)32000000)
@@ -11,13 +12,13 @@ extern uint32_t SystemCoreClock;
 #define configUSE_PREEMPTION                            1
 #define configUSE_TIME_SLICING                          1
 #define configUSE_TICKLESS_IDLE                         0
-#define configMAX_PRIORITIES                            5
+#define configMAX_PRIORITIES                            6
 #define configMINIMAL_STACK_SIZE                        ((unsigned short)128)
 #define configMAX_TASK_NAME_LEN                         16
 #define configTICK_TYPE_WIDTH_IN_BITS                   TICK_TYPE_WIDTH_32_BITS
 #define configIDLE_SHOULD_YIELD                         1
 #define configSUPPORT_DYNAMIC_ALLOCATION                1
-#define configSUPPORT_STATIC_ALLOCATION                 0
+#define configSUPPORT_STATIC_ALLOCATION                 1
 #define configTOTAL_HEAP_SIZE                           (12 * 1024)
 #define configAPPLICATION_ALLOCATED_HEAP                 0
 
@@ -57,9 +58,7 @@ extern uint32_t SystemCoreClock;
 #define configASSERT(x)                                 \
     do {                                                \
         if ((x) == 0) {                                 \
-            taskDISABLE_INTERRUPTS();                   \
-            for (;;) {                                  \
-            }                                           \
+            vApplicationAssertHook(__FILE__, __LINE__); \
         }                                               \
     } while (0)
 

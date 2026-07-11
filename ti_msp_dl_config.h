@@ -242,6 +242,12 @@ extern "C" {
 #define GPIO_ENCODER_B_RIGHT_B_IOMUX                             (IOMUX_PINCM52)
 
 
+/* Defines for WWDT */
+#define WWDT0_INST                                                       (WWDT0)
+#define WWDT0_INT_IRQN                                          (WWDT0_INT_IRQn)
+
+
+
 /* clang-format on */
 
 void SYSCFG_DL_init(void);
@@ -253,6 +259,7 @@ void SYSCFG_DL_PWM_MOTOR_init(void);
 void SYSCFG_DL_I2C_INST_init(void);
 void SYSCFG_DL_UART_DEBUG_init(void);
 
+void SYSCFG_DL_WWDT0_init(void);
 
 bool SYSCFG_DL_saveConfiguration(void);
 bool SYSCFG_DL_restoreConfiguration(void);
