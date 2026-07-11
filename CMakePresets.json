@@ -17,7 +17,9 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "NUEDC_TEST_LINE_SENSOR": "OFF",
         "NUEDC_TEST_MOTOR": "OFF",
-        "NUEDC_TEST_OLED_IMU": "OFF"
+        "NUEDC_TEST_OLED_IMU": "OFF",
+        "NUEDC_TEST_TURN": "OFF",
+        "NUEDC_TEST_ENCODER_IMU": "OFF"
       }
     },
     {
@@ -31,7 +33,9 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "NUEDC_TEST_LINE_SENSOR": "ON",
         "NUEDC_TEST_MOTOR": "OFF",
-        "NUEDC_TEST_OLED_IMU": "OFF"
+        "NUEDC_TEST_OLED_IMU": "OFF",
+        "NUEDC_TEST_TURN": "OFF",
+        "NUEDC_TEST_ENCODER_IMU": "OFF"
       }
     },
     {
@@ -45,7 +49,9 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "NUEDC_TEST_LINE_SENSOR": "OFF",
         "NUEDC_TEST_MOTOR": "ON",
-        "NUEDC_TEST_OLED_IMU": "OFF"
+        "NUEDC_TEST_OLED_IMU": "OFF",
+        "NUEDC_TEST_TURN": "OFF",
+        "NUEDC_TEST_ENCODER_IMU": "OFF"
       }
     },
     {
@@ -59,7 +65,41 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "NUEDC_TEST_LINE_SENSOR": "OFF",
         "NUEDC_TEST_MOTOR": "OFF",
-        "NUEDC_TEST_OLED_IMU": "ON"
+        "NUEDC_TEST_OLED_IMU": "ON",
+        "NUEDC_TEST_TURN": "OFF",
+        "NUEDC_TEST_ENCODER_IMU": "OFF"
+      }
+    },
+    {
+      "name": "turn-test",
+      "displayName": "Button IMU Turn Test",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-turn-test",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "OFF",
+        "NUEDC_TEST_MOTOR": "OFF",
+        "NUEDC_TEST_OLED_IMU": "OFF",
+        "NUEDC_TEST_TURN": "ON",
+        "NUEDC_TEST_ENCODER_IMU": "OFF"
+      }
+    },
+    {
+      "name": "encoder-imu-test",
+      "displayName": "Motor Encoder IMU Test",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-encoder-imu-test",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "OFF",
+        "NUEDC_TEST_MOTOR": "OFF",
+        "NUEDC_TEST_OLED_IMU": "OFF",
+        "NUEDC_TEST_TURN": "OFF",
+        "NUEDC_TEST_ENCODER_IMU": "ON"
       }
     }
   ],
@@ -79,6 +119,14 @@
     {
       "name": "oled-imu-test-build",
       "configurePreset": "oled-imu-test"
+    },
+    {
+      "name": "turn-test-build",
+      "configurePreset": "turn-test"
+    },
+    {
+      "name": "encoder-imu-test-build",
+      "configurePreset": "encoder-imu-test"
     }
   ]
 }

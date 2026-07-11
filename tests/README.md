@@ -1,7 +1,8 @@
 # Standalone Hardware Tests
 
 Hardware tests are separate CMake targets. They reuse the production board
-bindings but do not start the FreeRTOS application or control algorithms.
+bindings without starting the production mission application. Some tests run
+their own focused FreeRTOS control task.
 
 ## Digital Grayscale Sensor
 
@@ -55,3 +56,51 @@ Connect a 128x64 SSD1306-compatible OLED to PA0 (SDA) and PA1 (SCL). Addresses
 shows `CALIBRATING / KEEP STILL`. After calibration, the current continuous
 `yaw_deg` value is refreshed every 100 ms. UART0 also reports signed
 millidegrees as `$YAW,value` at 115200 baud.
+
+## Button IMU Turn Coordination
+
+The FreeRTOS coordination test uses the production IMU service, calibrated
+profile, motor BSP, health monitor and watchdog. Keep the car still during IMU
+calibration, then use one button at a time:
+
+| Button | Pin | Action |
+| --- | --- | --- |
+| Calibration | PA7 | clockwise 90 degrees |
+| Mode | PB1 | counterclockwise 90 degrees |
+| Start/stop | PB21 | clockwise 90, pause, then counterclockwise 90 |
+
+Build or flash from VS Code with `Build IMU Turn Test` and
+`Flash IMU Turn Test (J-Link)`. OLED and UART0 report the current phase, yaw,
+target, error and motor command. The controller brakes near the target and uses
+adaptive fine pulses until the stationary yaw error is within 0.2 degrees. A
+wrong initial direction, stale IMU, timeout or task-health fault stops both
+motors.
+
+## 100 cm Straight Encoder Calibration
+
+This FreeRTOS test uses requirement 1 of the H-problem field: A to B is a
+100 cm straight segment. Put digital grayscale channel 4 over the black arc at
+A, point the car toward B and briefly press PB21. The grayscale input records
+leaving A and whether any channel crosses B; the right encoder is the distance
+stop source.
+
+The measured right encoder calibration is `73.14 pulse/cm`, giving a 100 cm
+target of 7314 edges. The right wheel closes the distance loop, decelerating
+over the final 900 edges before braking at the target. The left motor follows
+the measured open-loop ratio of 298/302. Yaw is telemetry only and is not used
+for steering. OLED retains `PULSE`, converted `DIST`, and status:
+
+| Status | Meaning |
+| --- | --- |
+| `S:1` | Reached the encoder target without observing B |
+| `S:3` | Reached the encoder target and observed B |
+| `S:-2` | 15 second timeout |
+
+The calibrated run measured 99.8 cm over the physical 100 cm course. The left
+encoder input on PB15/PB16 showed no raw transitions during hardware testing,
+so independent left-wheel feedback and dual-wheel closed loop remain blocked
+on the board signal path. Do not treat the left channel as valid until its raw
+AB state changes while the wheel is turned.
+
+Build or flash with `Build Motor Encoder IMU Test` and
+`Flash Motor Encoder IMU Test (J-Link)`.

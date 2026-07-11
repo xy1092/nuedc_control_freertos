@@ -84,6 +84,40 @@
       "problemMatcher": []
     },
     {
+      "label": "Build IMU Turn Test",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build_turn_test.sh",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash IMU Turn Test (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "args": [
+        "${workspaceFolder}/build-turn-test/nuedc_turn_test.bin"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": "Build IMU Turn Test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Motor Encoder IMU Test",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build_encoder_imu_test.sh",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash Motor Encoder IMU Test (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "args": [
+        "${workspaceFolder}/build-encoder-imu-test/nuedc_encoder_imu_test.bin"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": "Build Motor Encoder IMU Test",
+      "problemMatcher": []
+    },
+    {
       "label": "Start J-Link GDB Server",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/jlink_gdb_server.sh",

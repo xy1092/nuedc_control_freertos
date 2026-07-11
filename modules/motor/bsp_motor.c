@@ -88,7 +88,7 @@ void BSP_Motor_Brake(uint8_t ch)
 {
     uint8_t idx = motor_index(ch);
 
-    Dev_Motor_Coast(&s_motor[idx]);
+    Dev_Motor_Brake(&s_motor[idx]);
     refresh_standby();
 }
 

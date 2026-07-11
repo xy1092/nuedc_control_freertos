@@ -24,13 +24,17 @@
     "**/build-fw": true,
     "**/build-line-sensor-test": true,
     "**/build-motor-test": true,
-    "**/build-oled-imu-test": true
+    "**/build-oled-imu-test": true,
+    "**/build-turn-test": true,
+    "**/build-encoder-imu-test": true
   },
   "search.exclude": {
     "**/build-fw": true,
     "**/build-line-sensor-test": true,
     "**/build-motor-test": true,
-    "**/build-oled-imu-test": true
+    "**/build-oled-imu-test": true,
+    "**/build-turn-test": true,
+    "**/build-encoder-imu-test": true
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {

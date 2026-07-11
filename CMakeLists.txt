@@ -10,6 +10,8 @@ option(NUEDC_USE_K230 "Enable the optional K230 vision UART BSP" OFF)
 option(NUEDC_TEST_LINE_SENSOR "Build the standalone digital grayscale test" OFF)
 option(NUEDC_TEST_MOTOR "Build the standalone button-driven motor test" OFF)
 option(NUEDC_TEST_OLED_IMU "Build the standalone OLED and IMU yaw test" OFF)
+option(NUEDC_TEST_TURN "Build the button-driven IMU closed-loop turn test" OFF)
+option(NUEDC_TEST_ENCODER_IMU "Build the motor, encoder and IMU calibration test" OFF)
 
 if(DEFINED ENV{MSPM0_SDK_ROOT} AND NOT "$ENV{MSPM0_SDK_ROOT}" STREQUAL "")
   set(MSPM0_SDK_ROOT "$ENV{MSPM0_SDK_ROOT}" CACHE PATH "Path to the MSPM0 SDK root")
@@ -124,9 +126,18 @@ set(APP_SOURCES
   ${TDK_ICM45688_SOURCES}
 )
 
-if((NUEDC_TEST_LINE_SENSOR AND NUEDC_TEST_MOTOR) OR
-   (NUEDC_TEST_LINE_SENSOR AND NUEDC_TEST_OLED_IMU) OR
-   (NUEDC_TEST_MOTOR AND NUEDC_TEST_OLED_IMU))
+set(NUEDC_STANDALONE_TEST_COUNT 0)
+foreach(test_option IN ITEMS
+    NUEDC_TEST_LINE_SENSOR
+    NUEDC_TEST_MOTOR
+    NUEDC_TEST_OLED_IMU
+    NUEDC_TEST_TURN
+    NUEDC_TEST_ENCODER_IMU)
+  if(${test_option})
+    math(EXPR NUEDC_STANDALONE_TEST_COUNT "${NUEDC_STANDALONE_TEST_COUNT} + 1")
+  endif()
+endforeach()
+if(NUEDC_STANDALONE_TEST_COUNT GREATER 1)
   message(FATAL_ERROR "Select only one standalone hardware test target.")
 endif()
 
@@ -167,6 +178,62 @@ elseif(NUEDC_TEST_OLED_IMU)
     modules/imu/device/dev_icm45688.c
     modules/imu/bsp_imu.c
     modules/imu/imu_profile.c
+    system/watchdog.c
+    ${TDK_ICM45688_SOURCES}
+  )
+elseif(NUEDC_TEST_TURN)
+  set(APP_TARGET nuedc_turn_test)
+  set(APP_SOURCES
+    tests/turn_test.c
+    ti_msp_dl_config.c
+    ${MSPM0_STARTUP_FILE}
+    ${FREERTOS_SOURCES}
+    platform/mspm0g3507/drivers/drv_gpio.c
+    platform/mspm0g3507/drivers/drv_hbridge_motor.c
+    platform/mspm0g3507/drivers/drv_pwm.c
+    platform/mspm0g3507/drivers/drv_quad_encoder.c
+    platform/mspm0g3507/drivers/drv_spi.c
+    platform/mspm0g3507/drivers/drv_time.c
+    platform/mspm0g3507/drivers/drv_uart.c
+    modules/display/ssd1306_mspm0.c
+    modules/motor/dev_motor.c
+    modules/motor/bsp_motor.c
+    modules/imu/device/dev_icm45688.c
+    modules/imu/bsp_imu.c
+    modules/imu/imu_profile.c
+    modules/imu/imu_service.c
+    system/fault_manager.c
+    system/health_monitor.c
+    system/watchdog.c
+    ${TDK_ICM45688_SOURCES}
+  )
+elseif(NUEDC_TEST_ENCODER_IMU)
+  set(APP_TARGET nuedc_encoder_imu_test)
+  set(APP_SOURCES
+    tests/straight_cal_test.c
+    ti_msp_dl_config.c
+    ${MSPM0_STARTUP_FILE}
+    ${FREERTOS_SOURCES}
+    platform/mspm0g3507/drivers/drv_gpio.c
+    platform/mspm0g3507/drivers/drv_hbridge_motor.c
+    platform/mspm0g3507/drivers/drv_line_sensor.c
+    platform/mspm0g3507/drivers/drv_pwm.c
+    platform/mspm0g3507/drivers/drv_quad_encoder.c
+    platform/mspm0g3507/drivers/drv_spi.c
+    platform/mspm0g3507/drivers/drv_time.c
+    platform/mspm0g3507/drivers/drv_uart.c
+    modules/display/ssd1306_mspm0.c
+    modules/motor/dev_motor.c
+    modules/motor/bsp_motor.c
+    modules/encoder/bsp_encoder.c
+    modules/line_sensor/dev_line_sensor.c
+    modules/line_sensor/bsp_adc.c
+    modules/imu/device/dev_icm45688.c
+    modules/imu/bsp_imu.c
+    modules/imu/imu_profile.c
+    modules/imu/imu_service.c
+    system/fault_manager.c
+    system/health_monitor.c
     system/watchdog.c
     ${TDK_ICM45688_SOURCES}
   )
