@@ -43,28 +43,25 @@ static void icm_sleep_us(uint32_t us)
     }
 }
 
-static int icm_i2c_write(void *context, uint8_t reg, const uint8_t *buf, uint32_t len)
+static int icm_spi_write(void *context, uint8_t reg, const uint8_t *buf, uint32_t len)
 {
     icm45688_mspm0_t *dev = (icm45688_mspm0_t *)context;
 
-    if (dev == NULL || buf == NULL || len > UINT16_MAX) {
+    if (dev == NULL || buf == NULL || len == 0u) {
         return -1;
     }
 
-    return Drv_I2c_WriteReg8(&dev->bus, dev->address, reg, buf,
-                             (uint16_t)len);
+    return Drv_Spi_WriteReg8(&dev->bus, reg, buf, len);
 }
 
-static int icm_i2c_read(void *context, uint8_t reg, uint8_t *buf, uint32_t len)
+static int icm_spi_read(void *context, uint8_t reg, uint8_t *buf, uint32_t len)
 {
     icm45688_mspm0_t *dev = (icm45688_mspm0_t *)context;
-    if (dev == NULL || dev->bus.inst == NULL || buf == NULL ||
-        len == 0u || len > 0x0FFFu) {
+    if (dev == NULL || dev->bus.inst == NULL || buf == NULL || len == 0u) {
         return -1;
     }
 
-    return Drv_I2c_ReadReg8(&dev->bus, dev->address, reg, buf,
-                            (uint16_t)len);
+    return Drv_Spi_ReadReg8(&dev->bus, reg, buf, len);
 }
 
 static void clear_measurements(icm45688_mspm0_t *dev)
@@ -468,9 +465,8 @@ static void update_auto_gyro_bias(icm45688_mspm0_t *dev,
     dev->gyro_bias_z_dps += (raw_gz_dps - dev->gyro_bias_z_dps) * learn;
 }
 
-void ICM45688_MSPM0_InitHandle(icm45688_mspm0_t *dev,
-                               const DrvI2cBus *bus,
-                               uint8_t address)
+void ICM45688_MSPM0_InitHandleSPI(icm45688_mspm0_t *dev,
+                                  const DrvSpiBus *bus)
 {
     if (dev == NULL) {
         return;
@@ -480,15 +476,15 @@ void ICM45688_MSPM0_InitHandle(icm45688_mspm0_t *dev,
     if (bus != NULL) {
         dev->bus = *bus;
     }
-    dev->address = (address == 0u) ? ICM45688_MSPM0_DEFAULT_ADDR : address;
     dev->accel_fsr_g = ICM45688_MSPM0_DEFAULT_ACCEL_FSR_G;
     dev->gyro_fsr_dps = ICM45688_MSPM0_DEFAULT_GYRO_FSR_DPS;
     init_attitude_defaults(dev);
 
     dev->tdk.transport.context = dev;
-    dev->tdk.transport.read_reg = icm_i2c_read;
-    dev->tdk.transport.write_reg = icm_i2c_write;
-    dev->tdk.transport.serif_type = UI_I2C;
+    Drv_Spi_Deselect(&dev->bus);
+    dev->tdk.transport.read_reg = icm_spi_read;
+    dev->tdk.transport.write_reg = icm_spi_write;
+    dev->tdk.transport.serif_type = UI_SPI4;
     dev->tdk.transport.sleep_us = icm_sleep_us;
 }
 
@@ -734,6 +730,18 @@ int ICM45688_MSPM0_Begin(icm45688_mspm0_t *dev)
     dev->ready = 0u;
     clear_measurements(dev);
     icm_sleep_us(3000u);
+
+    {
+        drive_config0_t drive_config0;
+
+        drive_config0.pads_spi_slew = DRIVE_CONFIG0_PADS_SPI_SLEW_TYP_10NS;
+        status |= inv_imu_write_reg(&dev->tdk, DRIVE_CONFIG0, 1,
+                                    (uint8_t *)&drive_config0);
+        if (status != INV_IMU_OK) {
+            return status;
+        }
+        icm_sleep_us(2u);
+    }
 
     status |= ICM45688_MSPM0_ReadWhoAmI(dev, &who);
     if (status != INV_IMU_OK || who != INV_IMU_WHOAMI) {

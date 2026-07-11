@@ -1,15 +1,16 @@
 #include "bsp_imu.h"
 #include "pin_map.h"
 
-static const DrvI2cBus s_imu_i2c = {
-    I2C_INST,
-    DRV_I2C_DEFAULT_WAIT_LIMIT,
-    DRV_I2C_DEFAULT_TX_FIFO_BYTES,
+static const DrvSpiBus s_imu_spi = {
+    IMU_SPI_INST,
+    IMU_CS_PORT,
+    IMU_CS_PIN,
+    DRV_SPI_DEFAULT_WAIT_LIMIT,
 };
 
-const DrvI2cBus *BSP_IMU_GetBus(void)
+const DrvSpiBus *BSP_IMU_GetBus(void)
 {
-    return &s_imu_i2c;
+    return &s_imu_spi;
 }
 
 uint8_t BSP_IMU_DataReady(void)

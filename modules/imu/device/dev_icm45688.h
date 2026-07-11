@@ -2,7 +2,7 @@
 #define DEV_ICM45688_H
 
 #include <stdint.h>
-#include "drv_i2c.h"
+#include "drv_spi.h"
 #include "imu/inv_imu_driver.h"
 
 #ifdef __cplusplus
@@ -20,8 +20,7 @@ typedef enum {
 } icm45688_mspm0_attitude_mode_t;
 
 typedef struct {
-    DrvI2cBus bus;
-    uint8_t address;
+    DrvSpiBus bus;
     uint8_t ready;
     uint8_t last_who_am_i;
     uint8_t stationary;
@@ -72,9 +71,8 @@ typedef struct {
     float yaw_deg;
 } icm45688_mspm0_t;
 
-void ICM45688_MSPM0_InitHandle(icm45688_mspm0_t *dev,
-                               const DrvI2cBus *bus,
-                               uint8_t address);
+void ICM45688_MSPM0_InitHandleSPI(icm45688_mspm0_t *dev,
+                                  const DrvSpiBus *bus);
 void ICM45688_MSPM0_SetFilter(icm45688_mspm0_t *dev, float dt_s, float alpha);
 void ICM45688_MSPM0_SetSampleLowPass(icm45688_mspm0_t *dev,
                                      float accel_cutoff_hz,

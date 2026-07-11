@@ -90,6 +90,7 @@ set(APP_SOURCES
   platform/mspm0g3507/drivers/drv_line_sensor.c
   platform/mspm0g3507/drivers/drv_pwm.c
   platform/mspm0g3507/drivers/drv_quad_encoder.c
+  platform/mspm0g3507/drivers/drv_spi.c
   platform/mspm0g3507/drivers/drv_time.c
   platform/mspm0g3507/drivers/drv_uart.c
   modules/motor/dev_motor.c

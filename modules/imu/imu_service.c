@@ -136,7 +136,7 @@ static void configure_imu_handle(void)
 {
     const ImuCalibratedProfile_t *profile = &g_imu_calibrated_profile;
 
-    ICM45688_MSPM0_InitHandle(&s_imu, BSP_IMU_GetBus(), ICM45688_MSPM0_DEFAULT_ADDR);
+    ICM45688_MSPM0_InitHandleSPI(&s_imu, BSP_IMU_GetBus());
     ICM45688_MSPM0_SetFilter(&s_imu, profile->sample_period_s,
                              profile->filter_alpha);
     ICM45688_MSPM0_SetSampleLowPass(&s_imu, profile->accel_lpf_hz,

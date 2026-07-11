@@ -1,33 +1,24 @@
 # ICM45688 Porting
 
-## Active I2C Wiring
-
-The control-board template already allocates a non-conflicting I2C bus:
+## Active SPI Wiring
 
 | ICM45688 signal | MSPM0G3507 | Configuration |
 | --- | --- | --- |
-| SDA | PA16 | I2C1 SDA, 400 kHz |
-| SCL | PA17 | I2C1 SCL |
-| INT1 | PA15 | latched active-high DRDY |
-| AD0 | module strap | address 0x68 |
+| MISO | PB7 | SPI1 POCI |
+| MOSI | PB8 | SPI1 PICO |
+| SCLK | PB9 | SPI1 SCLK |
+| CS | PB6 | manual active-low GPIO |
+| INT1 | PA13 | latched active-high DRDY |
 
-This changes only the transport binding. Sensor registers, sample timing,
-filtering, attitude math and calibration parameters are retained from the
-source project.
+SPI1 runs Motorola mode 3, MSB first, 8-bit words at 2 MHz. The generic
+platform transport is `platform/mspm0g3507/drivers/drv_spi.c`; the IMU module
+owns the bus and chip select through `bsp_imu.c`.
 
-## Pending SPI Wiring
+The SPI port uses the source driver's read/write command bits, 2 us chip-select
+timing, `UI_SPI4`, and the original SPI pad-slew initialization. Sensor
+registers, 200 Hz timing, filters, attitude calculation and calibration values
+are unchanged from `xy1092/mspm0-bmi088-icm45688`.
 
-The source demonstration used PB7/PB8/PB9/PB10/PB13. Those pins conflict with
-the current car's buzzer and motor direction outputs, so they are not copied
-into SysConfig. Until the board pin drawing is supplied, the SPI alternative is:
-
-| ICM45688 signal | Placeholder |
-| --- | --- |
-| AD0/MISO | PBxx |
-| SDA/MOSI | PBxx |
-| SCL/SCLK | PBxx |
-| CS | PAxx |
-| INT1 | PAxx |
-
-When real pins are known, add a platform SPI driver and switch only the IMU BSP
-binding. Do not change `dev_icm45688.c`, `imu_profile.c` or calibration math.
+When moving the IMU to another SPI instance, change SysConfig and `pin_map.h`.
+Do not place board pins inside `dev_icm45688.c` and do not change
+`imu_profile.c` as part of a transport port.

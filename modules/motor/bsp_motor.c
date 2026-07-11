@@ -14,8 +14,8 @@ static const DevMotorConfig s_motor_config[2] = {
     {
         {
             { PWM_MOTOR_INST, PWM_CH_LEFT, PWM_MAX, DRV_PWM_ACTIVE_LOW },
-            { MOTOR_DIR_PORT, LEFT_AIN1_PIN, 0u },
-            { MOTOR_DIR_PORT, LEFT_AIN2_PIN, 0u },
+            { MOTOR_A_DIR_PORT, LEFT_AIN1_PIN, 0u },
+            { MOTOR_A_DIR_PORT, LEFT_AIN2_PIN, 0u },
             1,
         },
         {
@@ -29,8 +29,8 @@ static const DevMotorConfig s_motor_config[2] = {
     {
         {
             { PWM_MOTOR_INST, PWM_CH_RIGHT, PWM_MAX, DRV_PWM_ACTIVE_LOW },
-            { MOTOR_DIR_PORT, RIGHT_BIN1_PIN, 0u },
-            { MOTOR_DIR_PORT, RIGHT_BIN2_PIN, 0u },
+            { MOTOR_A_DIR_PORT, RIGHT_BIN1_PIN, 0u },
+            { MOTOR_B_DIR_PORT, RIGHT_BIN2_PIN, 0u },
             1,
         },
         {
@@ -42,10 +42,6 @@ static const DevMotorConfig s_motor_config[2] = {
         1u,
     },
 };
-
-#ifdef MOTOR_STBY_PIN
-static const DrvGpioPin s_stby       = { MOTOR_DIR_PORT, MOTOR_STBY_PIN, 0u };
-#endif
 
 static inline uint8_t motor_index(uint8_t ch)
 {
@@ -98,11 +94,7 @@ void BSP_Motor_Brake(uint8_t ch)
 
 void BSP_Motor_Standby(uint8_t on)
 {
-#ifdef MOTOR_STBY_PIN
-    Drv_Gpio_WriteRaw(&s_stby, on ? 1u : 0u);
-#else
     (void)on;
-#endif
 }
 
 void BSP_Motor_SafetyTick(uint32_t now_ms)

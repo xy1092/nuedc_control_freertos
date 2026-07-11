@@ -68,16 +68,26 @@ The service owns the sensor and publishes an atomic `ImuSnapshot_t`. During
 startup calibration the car stays in IDLE while the IMU task continues sending
 health heartbeats.
 
-Current template wiring uses I2C1 at 400 kHz:
+The calibrated device uses SPI1 mode 3 at 2 MHz. Only the transport and board
+binding differ from the source project:
 
 | Signal | MSPM0G3507 pin |
 | --- | --- |
-| ICM45688 SDA | PA16 |
-| ICM45688 SCL | PA17 |
-| ICM45688 INT1 | PA15 |
-| ICM45688 address | 0x68 |
+| ICM45688 MISO | PB7 |
+| ICM45688 MOSI | PB8 |
+| ICM45688 SCLK | PB9 |
+| ICM45688 CS | PB6 |
+| ICM45688 INT1 | PA13 |
 
-See `docs/IMU_PORTING.md` for the pending SPI placeholders.
+See `docs/IMU_PORTING.md` for the transport contract and `docs/PIN_MAP.md` for
+the complete board assignment.
+
+## Encoders
+
+The left encoder uses native TIMG8 QEI on PB15/PB16. MSPM0G3507 does not offer
+native QEI on TIMG6, so the fixed PB26/PB27 right-encoder pins use TIMG6 C0/C1
+dual-edge capture interrupts and decode every quadrature transition in the ISR.
+The 5 ms fast task only snapshots the accumulated hardware counts.
 
 ## Build
 

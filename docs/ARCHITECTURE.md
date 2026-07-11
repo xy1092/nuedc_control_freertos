@@ -44,7 +44,7 @@ but it must not implement filtering, calibration, route logic or UI behavior.
 `imu_service.c` is the only owner of the ICM45688 instance. It performs the
 original startup and dynamic calibration flows, consumes DRDY at 200 Hz and
 publishes `ImuSnapshot_t` inside a FreeRTOS critical section. Other tasks never
-touch the I2C bus or TDK object directly.
+touch the SPI bus or TDK object directly.
 
 ## Failure Containment
 
