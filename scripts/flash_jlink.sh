@@ -54,7 +54,10 @@ set -e
 printf '%s\n' "$jlink_output"
 
 if [[ "$jlink_status" -ne 0 ]] ||
-   grep -Eiq 'Error occurred|Could not connect|Cannot connect to the probe/programmer|J-Link connection not established|Failed to initialize|No PWR-AP detected|Target connection not established' <<<"$jlink_output"; then
+   ! grep -Fq 'J-Link: Flash download:' <<<"$jlink_output" ||
+   ! grep -Fxq 'O.K.' <<<"$jlink_output"; then
   echo 'J-Link 烧录失败：未能连接或下载到目标芯片。'
   exit 1
 fi
+
+echo 'J-Link 烧录成功：固件已完成编程和校验。'

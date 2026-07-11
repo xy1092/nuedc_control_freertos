@@ -7,13 +7,13 @@ Target: MSPM0G3507, LQFP-64. This table matches
 | --- | --- | --- | --- |
 | OLED | SDA | PA0 | I2C0 SDA, 400 kHz |
 | OLED | SCL | PA1 | I2C0 SCL, 400 kHz |
-| Grayscale | CH1 | PA27 | digital input |
-| Grayscale | CH2 | PA26 | digital input |
-| Grayscale | CH3 | PA25 | digital input |
-| Grayscale | CH4 | PA24 | digital input |
-| Grayscale | CH5 | PB25 | digital input |
-| Grayscale | CH6 | PB24 | digital input |
-| Grayscale | CH7 | PB20 | digital input |
+| Grayscale | CH1 (leftmost) | PB20 | digital input, pull-up |
+| Grayscale | CH2 | PB24 | digital input, pull-up |
+| Grayscale | CH3 | PB25 | digital input, pull-up |
+| Grayscale | CH4 | PA24 | digital input, pull-up |
+| Grayscale | CH5 | PA25 | digital input, pull-up |
+| Grayscale | CH6 | PA26 | digital input, pull-up |
+| Grayscale | CH7 (rightmost) | PA27 | digital input, pull-up |
 | Motor A | PWM | PA8 | TIMA0 C0 |
 | Motor A | AIN1 | PA15 | GPIO output |
 | Motor A | AIN2 | PA16 | GPIO output |

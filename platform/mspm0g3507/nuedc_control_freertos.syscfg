@@ -115,27 +115,34 @@ GPIO_LINE_A.$name = "GPIO_LINE_A";
 GPIO_LINE_A.associatedPins.create(4);
 GPIO_LINE_A.associatedPins[0].$name = "LINE0";
 GPIO_LINE_A.associatedPins[0].direction = "INPUT";
+GPIO_LINE_A.associatedPins[0].internalResistor = "PULL_UP";
 GPIO_LINE_A.associatedPins[0].pin.$assign = "PA27";
 GPIO_LINE_A.associatedPins[1].$name = "LINE1";
 GPIO_LINE_A.associatedPins[1].direction = "INPUT";
+GPIO_LINE_A.associatedPins[1].internalResistor = "PULL_UP";
 GPIO_LINE_A.associatedPins[1].pin.$assign = "PA26";
 GPIO_LINE_A.associatedPins[2].$name = "LINE2";
 GPIO_LINE_A.associatedPins[2].direction = "INPUT";
+GPIO_LINE_A.associatedPins[2].internalResistor = "PULL_UP";
 GPIO_LINE_A.associatedPins[2].pin.$assign = "PA25";
 GPIO_LINE_A.associatedPins[3].$name = "LINE3";
 GPIO_LINE_A.associatedPins[3].direction = "INPUT";
+GPIO_LINE_A.associatedPins[3].internalResistor = "PULL_UP";
 GPIO_LINE_A.associatedPins[3].pin.$assign = "PA24";
 
 GPIO_LINE_B.$name = "GPIO_LINE_B";
 GPIO_LINE_B.associatedPins.create(3);
 GPIO_LINE_B.associatedPins[0].$name = "LINE4";
 GPIO_LINE_B.associatedPins[0].direction = "INPUT";
+GPIO_LINE_B.associatedPins[0].internalResistor = "PULL_UP";
 GPIO_LINE_B.associatedPins[0].pin.$assign = "PB25";
 GPIO_LINE_B.associatedPins[1].$name = "LINE5";
 GPIO_LINE_B.associatedPins[1].direction = "INPUT";
+GPIO_LINE_B.associatedPins[1].internalResistor = "PULL_UP";
 GPIO_LINE_B.associatedPins[1].pin.$assign = "PB24";
 GPIO_LINE_B.associatedPins[2].$name = "LINE6";
 GPIO_LINE_B.associatedPins[2].direction = "INPUT";
+GPIO_LINE_B.associatedPins[2].internalResistor = "PULL_UP";
 GPIO_LINE_B.associatedPins[2].pin.$assign = "PB20";
 
 /* UART0 debug: PA10 TX, PA11 RX, 115200 8N1. */

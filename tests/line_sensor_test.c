@@ -79,13 +79,14 @@ int main(void)
     uint8_t seen_high;
 
     SYSCFG_DL_init();
+    DL_WWDT_restart(WWDT0_INST);
     BSP_Adc_Init();
     previous = read_gray_bits();
     seen_high = previous;
     seen_low = (uint8_t)(~previous) & GRAY_MASK;
 
     write_string("\r\nGRAY7 DIGITAL TEST v1\r\n");
-    write_string("CH1..CH7=PA27,PA26,PA25,PA24,PB25,PB24,PB20\r\n");
+    write_string("CH1..CH7=PB20,PB24,PB25,PA24,PA25,PA26,PA27 (LEFT..RIGHT)\r\n");
     write_string("FORMAT:$GRAY,ms,ch1..ch7,bits,changed,seen0,seen1,edge1..7\r\n");
 
     for (;;) {
@@ -93,6 +94,7 @@ int main(void)
         uint8_t changed;
 
         delay_cycles((CPUCLK_FREQ / 1000u) * SAMPLE_PERIOD_MS);
+        DL_WWDT_restart(WWDT0_INST);
         now_ms += SAMPLE_PERIOD_MS;
         report_elapsed += SAMPLE_PERIOD_MS;
         heartbeat_elapsed += SAMPLE_PERIOD_MS;

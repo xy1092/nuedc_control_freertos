@@ -57,15 +57,20 @@
 #error "NUEDC_USE_K230 requires UART_K230 in SysConfig."
 #endif
 
-/* Seven digital grayscale channels, logical order: left to right. */
-#define LINE_A_PORT             GPIO_LINE_A_PORT
-#define LINE_CCD0_PIN           GPIO_LINE_A_LINE0_PIN
-#define LINE_CCD1_PIN           GPIO_LINE_A_LINE1_PIN
-#define LINE_CCD2_PIN           GPIO_LINE_A_LINE2_PIN
+/* Seven digital grayscale channels, physical order: left to right. */
+#define LINE_CCD0_PORT          GPIO_LINE_B_PORT
+#define LINE_CCD0_PIN           GPIO_LINE_B_LINE6_PIN
+#define LINE_CCD1_PORT          GPIO_LINE_B_PORT
+#define LINE_CCD1_PIN           GPIO_LINE_B_LINE5_PIN
+#define LINE_CCD2_PORT          GPIO_LINE_B_PORT
+#define LINE_CCD2_PIN           GPIO_LINE_B_LINE4_PIN
+#define LINE_CCD3_PORT          GPIO_LINE_A_PORT
 #define LINE_CCD3_PIN           GPIO_LINE_A_LINE3_PIN
-#define LINE_B_PORT             GPIO_LINE_B_PORT
-#define LINE_CCD4_PIN           GPIO_LINE_B_LINE4_PIN
-#define LINE_CCD5_PIN           GPIO_LINE_B_LINE5_PIN
-#define LINE_CCD6_PIN           GPIO_LINE_B_LINE6_PIN
+#define LINE_CCD4_PORT          GPIO_LINE_A_PORT
+#define LINE_CCD4_PIN           GPIO_LINE_A_LINE2_PIN
+#define LINE_CCD5_PORT          GPIO_LINE_A_PORT
+#define LINE_CCD5_PIN           GPIO_LINE_A_LINE1_PIN
+#define LINE_CCD6_PORT          GPIO_LINE_A_PORT
+#define LINE_CCD6_PIN           GPIO_LINE_A_LINE0_PIN
 
 #endif
