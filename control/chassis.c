@@ -1,5 +1,6 @@
 #include "chassis.h"
 #include "bsp_motor.h"
+#include "vehicle_calibration.h"
 #ifndef NUEDC_NO_ENCODER
 #include "bsp_encoder.h"
 #endif
@@ -10,7 +11,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define CONTROL_CHASSIS_DEFAULT_PULSES_PER_CM      73.14f
+#define CONTROL_CHASSIS_DEFAULT_LEFT_PULSES_PER_CM \
+    VEHICLE_ENCODER_LEFT_PULSES_PER_CM
+#define CONTROL_CHASSIS_DEFAULT_RIGHT_PULSES_PER_CM \
+    VEHICLE_ENCODER_RIGHT_PULSES_PER_CM
 #define CONTROL_CHASSIS_DEFAULT_WHEEL_BASE_CM      13.5f
 #define CONTROL_CHASSIS_DEFAULT_OPEN_LOOP_CM_PWM   0.00022f
 #define CONTROL_CHASSIS_DEFAULT_SPEED_OUT_LIMIT    1000.0f
@@ -34,8 +38,13 @@ static float clampf_local(float x, float lo, float hi)
 
 static void normalize_config(ControlChassisConfig_t *config)
 {
-    if (config->pulses_per_cm <= 0.0f) {
-        config->pulses_per_cm = CONTROL_CHASSIS_DEFAULT_PULSES_PER_CM;
+    if (config->left_pulses_per_cm <= 0.0f) {
+        config->left_pulses_per_cm =
+            CONTROL_CHASSIS_DEFAULT_LEFT_PULSES_PER_CM;
+    }
+    if (config->right_pulses_per_cm <= 0.0f) {
+        config->right_pulses_per_cm =
+            CONTROL_CHASSIS_DEFAULT_RIGHT_PULSES_PER_CM;
     }
     if (config->wheel_base_cm <= 0.0f) {
         config->wheel_base_cm = CONTROL_CHASSIS_DEFAULT_WHEEL_BASE_CM;
@@ -175,8 +184,8 @@ void Control_Chassis_Tick(ControlChassis_t *chassis, uint8_t run, uint32_t now_m
     int16_t pwm_right;
 
     integrate_odometry(chassis,
-                       meas_left / chassis->config.pulses_per_cm,
-                       meas_right / chassis->config.pulses_per_cm);
+                       meas_left / chassis->config.left_pulses_per_cm,
+                       meas_right / chassis->config.right_pulses_per_cm);
 
     chassis->measured_speed_left = meas_left;
     chassis->measured_speed_right = meas_right;

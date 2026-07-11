@@ -15,11 +15,12 @@
 #include "health_monitor.h"
 
 static const ControlChassisConfig_t k_chassis_config = {
-    APP_PULSES_PER_CM,
-    APP_WHEEL_BASE_CM,
-    APP_OPEN_LOOP_CM_PER_PWM_MS,
-    APP_SPEED_OUT_LIMIT,
-    APP_FORWARD_MIN_PULSE,
+    .left_pulses_per_cm = APP_LEFT_PULSES_PER_CM,
+    .right_pulses_per_cm = APP_RIGHT_PULSES_PER_CM,
+    .wheel_base_cm = APP_WHEEL_BASE_CM,
+    .open_loop_cm_per_pwm_ms = APP_OPEN_LOOP_CM_PER_PWM_MS,
+    .speed_out_limit = APP_SPEED_OUT_LIMIT,
+    .forward_min_pulse = APP_FORWARD_MIN_PULSE,
 };
 
 void App_Init(void)

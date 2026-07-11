@@ -18,6 +18,10 @@ algorithms that combine module data. `modules/` owns hardware capabilities and
 their state. `platform/` owns the MCU, generated names and physical pins.
 `system/` owns faults, task liveness and reset policy.
 
+Physical constants measured on the assembled car are owned by
+`config/vehicle_calibration.h`. Tests and production code reference that file
+instead of keeping separate copies of calibration values.
+
 ## Module Contract
 
 Each stateful module should provide:

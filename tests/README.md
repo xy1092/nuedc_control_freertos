@@ -81,14 +81,16 @@ motors.
 This FreeRTOS test uses requirement 1 of the H-problem field: A to B is a
 100 cm straight segment. Put digital grayscale channel 4 over the black arc at
 A, point the car toward B and briefly press PB21. The grayscale input records
-leaving A and whether any channel crosses B; the right encoder is the distance
-stop source.
+leaving A and whether any channel crosses B; both encoders independently close
+their wheel's distance loop.
 
-The measured right encoder calibration is `73.14 pulse/cm`, giving a 100 cm
-target of 7314 edges. The right wheel closes the distance loop, decelerating
-over the final 900 edges before braking at the target. The left motor follows
-the measured open-loop ratio of 298/302. Yaw is telemetry only and is not used
-for steering. OLED retains `PULSE`, converted `DIST`, and status:
+The right encoder calibration is `73.14 pulse/cm`. Straight-line trim currently
+uses `73.44 pulse/cm` for the left encoder, giving 100 cm targets of 7344 left
+and 7314 right. Each wheel decelerates independently over its final 900 edges
+and brakes when its own target is reached. The open-loop PWM values are trimmed
+to 300/300. A limited encoder-ratio correction keeps both wheel distances
+synchronized while running. Yaw is telemetry only and is not used for steering.
+OLED retains both pulse counts, both converted distances, and status:
 
 | Status | Meaning |
 | --- | --- |
@@ -96,11 +98,10 @@ for steering. OLED retains `PULSE`, converted `DIST`, and status:
 | `S:3` | Reached the encoder target and observed B |
 | `S:-2` | 15 second timeout |
 
-The calibrated run measured 99.8 cm over the physical 100 cm course. The left
-encoder input on PB15/PB16 showed no raw transitions during hardware testing,
-so independent left-wheel feedback and dual-wheel closed loop remain blocked
-on the board signal path. Do not treat the left channel as valid until its raw
-AB state changes while the wheel is turned.
+The calibrated right-wheel run measured 99.8 cm over the physical 100 cm
+course. The final `73.44/73.14 pulse/cm` left/right ratio was physically
+verified to run straight. These values are shared with the production chassis
+through `config/vehicle_calibration.h`.
 
 Build or flash with `Build Motor Encoder IMU Test` and
 `Flash Motor Encoder IMU Test (J-Link)`.

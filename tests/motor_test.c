@@ -3,9 +3,10 @@
 #include "drv_hbridge_motor.h"
 #include "drv_uart.h"
 #include "pin_map.h"
+#include "vehicle_calibration.h"
 #include <stdint.h>
 
-#define MOTOR_TEST_DUTY      300
+#define MOTOR_TEST_DUTY      VEHICLE_STRAIGHT_PWM_LEFT
 #define LOOP_PERIOD_MS       10u
 #define DEBOUNCE_SAMPLES     3u
 #define HEARTBEAT_PERIOD_MS  500u

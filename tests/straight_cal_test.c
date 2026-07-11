@@ -10,6 +10,7 @@
 #include "pin_map.h"
 #include "ssd1306_mspm0.h"
 #include "watchdog.h"
+#include "vehicle_calibration.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdarg.h>
@@ -18,15 +19,22 @@
 #include <stdio.h>
 
 #define STRAIGHT_DISTANCE_CM       100u
-#define BASE_PWM                   300
-#define START_PWM                  300
-#define LEFT_PWM_OFFSET            (-2)
-#define RIGHT_PWM_OFFSET           2
-#define RIGHT_PULSES_PER_CM        73.14f
-#define ENCODER_TARGET_PULSES      7314u
-#define DECEL_WINDOW_PULSES        900u
-#define MIN_CLOSED_LOOP_PWM        220
-#define RAMP_TIME_MS               500u
+#define BASE_PWM                   VEHICLE_STRAIGHT_PWM_RIGHT
+#define START_PWM                  VEHICLE_STRAIGHT_PWM_RIGHT
+#define LEFT_PWM_OFFSET            (VEHICLE_STRAIGHT_PWM_LEFT - BASE_PWM)
+#define RIGHT_PWM_OFFSET           (VEHICLE_STRAIGHT_PWM_RIGHT - BASE_PWM)
+#define LEFT_PULSES_PER_CM         VEHICLE_ENCODER_LEFT_PULSES_PER_CM
+#define RIGHT_PULSES_PER_CM        VEHICLE_ENCODER_RIGHT_PULSES_PER_CM
+#define LEFT_ENCODER_TARGET_PULSES ((uint32_t)(LEFT_PULSES_PER_CM * \
+                                    (float)STRAIGHT_DISTANCE_CM + 0.5f))
+#define RIGHT_ENCODER_TARGET_PULSES ((uint32_t)(RIGHT_PULSES_PER_CM * \
+                                     (float)STRAIGHT_DISTANCE_CM + 0.5f))
+#define DECEL_WINDOW_PULSES        VEHICLE_STRAIGHT_DECEL_WINDOW_PULSES
+#define MIN_CLOSED_LOOP_PWM        VEHICLE_STRAIGHT_MIN_PWM
+#define RAMP_TIME_MS               VEHICLE_STRAIGHT_RAMP_MS
+#define ENCODER_SYNC_KP            VEHICLE_STRAIGHT_SYNC_KP
+#define ENCODER_SYNC_DEADBAND      VEHICLE_STRAIGHT_SYNC_DEADBAND_PULSES
+#define ENCODER_SYNC_MAX_PWM       VEHICLE_STRAIGHT_SYNC_MAX_PWM
 #define RUN_TIMEOUT_MS             15000u
 #define BRAKE_HOLD_MS              300u
 #define FINISH_ARM_MS              500u
@@ -213,6 +221,64 @@ static bool read_button_press_event(void)
     return false;
 }
 
+static int16_t wheel_pwm_from_count(uint32_t count, uint32_t target,
+                                    uint32_t elapsed_ms, int16_t pwm_offset)
+{
+    uint32_t remaining;
+    float base;
+    float trim_scale;
+
+    if (count >= target) {
+        return 0;
+    }
+
+    remaining = target - count;
+    if (remaining < DECEL_WINDOW_PULSES) {
+        base = (float)MIN_CLOSED_LOOP_PWM +
+               (float)(BASE_PWM - MIN_CLOSED_LOOP_PWM) *
+                   (float)remaining / (float)DECEL_WINDOW_PULSES;
+        trim_scale = 1.0f;
+    } else if (elapsed_ms < RAMP_TIME_MS) {
+        base = (float)START_PWM +
+               (float)(BASE_PWM - START_PWM) *
+                   (float)elapsed_ms / (float)RAMP_TIME_MS;
+        trim_scale = (float)elapsed_ms / (float)RAMP_TIME_MS;
+    } else {
+        base = (float)BASE_PWM;
+        trim_scale = 1.0f;
+    }
+
+    return (int16_t)(base + (float)pwm_offset * trim_scale);
+}
+
+static int16_t encoder_sync_adjust(uint32_t left_count, uint32_t right_count,
+                                   uint32_t elapsed_ms)
+{
+    int32_t desired_left_count = (int32_t)(
+        ((uint64_t)right_count * LEFT_ENCODER_TARGET_PULSES +
+         RIGHT_ENCODER_TARGET_PULSES / 2u) /
+        RIGHT_ENCODER_TARGET_PULSES);
+    int32_t error = desired_left_count - (int32_t)left_count;
+    float ramp_scale = 1.0f;
+    int16_t adjust;
+
+    if (error >= -ENCODER_SYNC_DEADBAND &&
+        error <= ENCODER_SYNC_DEADBAND) {
+        return 0;
+    }
+    if (elapsed_ms < RAMP_TIME_MS) {
+        ramp_scale = (float)elapsed_ms / (float)RAMP_TIME_MS;
+    }
+
+    adjust = (int16_t)((float)error * ENCODER_SYNC_KP * ramp_scale);
+    if (adjust > ENCODER_SYNC_MAX_PWM) {
+        adjust = ENCODER_SYNC_MAX_PWM;
+    } else if (adjust < -ENCODER_SYNC_MAX_PWM) {
+        adjust = -ENCODER_SYNC_MAX_PWM;
+    }
+    return adjust;
+}
+
 static void control_task(void *argument)
 {
     TickType_t last = xTaskGetTickCount();
@@ -304,46 +370,48 @@ static void control_task(void *argument)
 
         if (state == STRAIGHT_RUNNING) {
             uint32_t ramp_elapsed = (uint32_t)(now - run_started_ms);
+            uint32_t left_count = (uint32_t)abs_i64(
+                BSP_Encoder_GetTotal(0u));
             uint32_t right_count = (uint32_t)abs_i64(
                 BSP_Encoder_GetTotal(1u));
-            float base;
-            float trim_scale;
 
             elapsed_ms = ramp_elapsed;
             yaw_error = yaw_reference - imu.yaw_deg;
             if (ramp_elapsed > RUN_TIMEOUT_MS) {
                 state = STRAIGHT_FAULT;
                 fault_status = -2;
-            } else if (right_count >= ENCODER_TARGET_PULSES) {
+            } else if (left_count >= LEFT_ENCODER_TARGET_PULSES &&
+                       right_count >= RIGHT_ENCODER_TARGET_PULSES) {
                 brake_motors();
                 brake_started_ms = now;
                 fault_status |= 1;
                 state = STRAIGHT_DONE;
             } else {
-                uint32_t remaining = ENCODER_TARGET_PULSES - right_count;
+                int16_t sync_adjust;
 
-                if (remaining < DECEL_WINDOW_PULSES) {
-                    base = (float)MIN_CLOSED_LOOP_PWM +
-                           (float)(BASE_PWM - MIN_CLOSED_LOOP_PWM) *
-                               (float)remaining /
-                               (float)DECEL_WINDOW_PULSES;
-                    trim_scale = 1.0f;
-                } else if (ramp_elapsed < RAMP_TIME_MS) {
-                    base = (float)START_PWM +
-                           (float)(BASE_PWM - START_PWM) *
-                               (float)ramp_elapsed / (float)RAMP_TIME_MS;
-                    trim_scale = (float)ramp_elapsed /
-                                 (float)RAMP_TIME_MS;
-                } else {
-                    base = (float)BASE_PWM;
-                    trim_scale = 1.0f;
+                left_pwm = wheel_pwm_from_count(
+                    left_count, LEFT_ENCODER_TARGET_PULSES,
+                    ramp_elapsed, LEFT_PWM_OFFSET);
+                right_pwm = wheel_pwm_from_count(
+                    right_count, RIGHT_ENCODER_TARGET_PULSES,
+                    ramp_elapsed, RIGHT_PWM_OFFSET);
+                sync_adjust = encoder_sync_adjust(
+                    left_count, right_count, ramp_elapsed);
+                if (left_pwm != 0 && right_pwm != 0) {
+                    left_pwm += sync_adjust;
+                    right_pwm -= sync_adjust;
                 }
-                left_pwm = (int16_t)(base +
-                    (float)LEFT_PWM_OFFSET * trim_scale);
-                right_pwm = (int16_t)(base +
-                    (float)RIGHT_PWM_OFFSET * trim_scale);
-                BSP_Motor_SetSignedDuty(0u, left_pwm);
-                BSP_Motor_SetSignedDuty(1u, right_pwm);
+
+                if (left_pwm == 0) {
+                    BSP_Motor_Brake(0u);
+                } else {
+                    BSP_Motor_SetSignedDuty(0u, left_pwm);
+                }
+                if (right_pwm == 0) {
+                    BSP_Motor_Brake(1u);
+                } else {
+                    BSP_Motor_SetSignedDuty(1u, right_pwm);
+                }
             }
         } else if (state == STRAIGHT_DONE) {
             elapsed_ms = (uint32_t)(brake_started_ms - run_started_ms);
@@ -409,9 +477,13 @@ static void ui_task(void *argument)
         StraightSnapshot snapshot;
         char line[SSD1306_TEXT_COLUMNS + 1u];
         uint32_t now = (uint32_t)xTaskGetTickCount();
+        uint32_t left_count;
+        uint32_t right_count;
 
         read_snapshot(&snapshot);
-        oled_write(0u, "RIGHT ENC CLOSED");
+        left_count = (uint32_t)abs_i64(snapshot.left_total);
+        right_count = (uint32_t)abs_i64(snapshot.right_total);
+        oled_write(0u, "DUAL ENC CLOSED");
         (void)snprintf(line, sizeof(line), "STATE:%s",
                        state_text(snapshot.state));
         oled_write(1u, line);
@@ -419,21 +491,35 @@ static void ui_task(void *argument)
                        snapshot.center_level, snapshot.start_black_level,
                        snapshot.left_start_line ? "SEEK B" : "LEAVE A");
         oled_write(2u, line);
-        oled_write(3u, "L:OPEN LOOP FOLLOW");
-        (void)snprintf(line, sizeof(line), "PULSE:%lld",
-                       (long long)abs_i64(snapshot.right_total));
+        (void)snprintf(line, sizeof(line), "E:%ld L:%d R:%d",
+                       (long)((int32_t)right_count - (int32_t)left_count),
+                       snapshot.left_pwm, snapshot.right_pwm);
+        oled_write(3u, line);
+        (void)snprintf(line, sizeof(line), "L:%lu R:%lu",
+                       (unsigned long)left_count,
+                       (unsigned long)right_count);
         oled_write(4u, line);
         {
-            uint64_t right_count = (uint64_t)abs_i64(snapshot.right_total);
+            uint32_t left_distance_tenths = (uint32_t)(
+                (float)left_count * 10.0f / LEFT_PULSES_PER_CM);
             uint32_t distance_tenths = (uint32_t)(
                 (float)right_count * 10.0f / RIGHT_PULSES_PER_CM);
 
-            (void)snprintf(line, sizeof(line), "DIST:%lu.%luCM",
+            if (left_distance_tenths > 9999u) {
+                left_distance_tenths = 9999u;
+            }
+            if (distance_tenths > 9999u) {
+                distance_tenths = 9999u;
+            }
+            (void)snprintf(line, sizeof(line), "D:%lu.%lu/%lu.%luCM",
+                           (unsigned long)(left_distance_tenths / 10u),
+                           (unsigned long)(left_distance_tenths % 10u),
                            (unsigned long)(distance_tenths / 10u),
                            (unsigned long)(distance_tenths % 10u));
             oled_write(5u, line);
-            (void)snprintf(line, sizeof(line), "TARGET:%uP",
-                           ENCODER_TARGET_PULSES);
+            (void)snprintf(line, sizeof(line), "T:%lu/%luP",
+                           (unsigned long)LEFT_ENCODER_TARGET_PULSES,
+                           (unsigned long)RIGHT_ENCODER_TARGET_PULSES);
         }
         oled_write(6u, line);
         (void)snprintf(line, sizeof(line), "T:%lu.%01lu S:%d",
@@ -441,11 +527,11 @@ static void ui_task(void *argument)
                        (unsigned long)((snapshot.elapsed_ms % 1000u) / 100u),
                        snapshot.status);
         oled_write(7u, line);
-        uart_printf("$SCAL,%s,%lu,%lld,%lld,%ld,%ld,%d,%d,%d,%u,%u,%u\r\n",
+        uart_printf("$SCAL,%s,%lu,%lu,%lu,%ld,%ld,%d,%d,%d,%u,%u,%u\r\n",
                     state_text(snapshot.state),
                     (unsigned long)snapshot.elapsed_ms,
-                    (long long)snapshot.left_total,
-                    (long long)snapshot.right_total,
+                    (unsigned long)left_count,
+                    (unsigned long)right_count,
                     (long)to_millidegrees(snapshot.yaw_deg),
                     (long)to_millidegrees(snapshot.yaw_error_deg),
                     snapshot.left_pwm, snapshot.right_pwm, snapshot.status,

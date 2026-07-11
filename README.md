@@ -89,6 +89,18 @@ native QEI on TIMG6, so the fixed PB26/PB27 right-encoder pins use TIMG6 C0/C1
 dual-edge capture interrupts and decode every quadrature transition in the ISR.
 The 5 ms fast task only snapshots the accumulated hardware counts.
 
+## Vehicle Calibration
+
+Measured car constants are centralized in `config/vehicle_calibration.h`.
+Production odometry uses `73.44 pulse/cm` on the left and `73.14 pulse/cm` on
+the right. The verified straight baseline is 300/300 PWM, with encoder-ratio
+synchronization. The digital grayscale order, motor polarity, 100 cm distance
+profile and precise stationary 90-degree turn values are recorded in
+`docs/CALIBRATION.md`.
+
+The line-tracking and wheel-speed PID gains remain initial template values;
+they have not yet been calibrated on the final course.
+
 ## Build
 
 ```bash

@@ -143,7 +143,7 @@
       "id": "serialPort",
       "type": "promptString",
       "description": "Serial device, for example /dev/ttyACM0 or /dev/ttyUSB0",
-      "default": "/dev/ttyACM0"
+      "default": "/dev/ttyUSB0"
     }
   ]
 }

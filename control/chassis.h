@@ -11,7 +11,8 @@ typedef struct {
 } ControlPose2D_t;
 
 typedef struct {
-    float pulses_per_cm;
+    float left_pulses_per_cm;
+    float right_pulses_per_cm;
     float wheel_base_cm;
     float open_loop_cm_per_pwm_ms;
     float speed_out_limit;

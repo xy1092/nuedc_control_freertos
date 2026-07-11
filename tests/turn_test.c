@@ -11,6 +11,7 @@
 #include "pin_map.h"
 #include "ssd1306_mspm0.h"
 #include "watchdog.h"
+#include "vehicle_calibration.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdarg.h>
@@ -24,28 +25,28 @@
 #define TURN_FINE_MAX_ATTEMPTS     12u
 #define TURN_TIMEOUT_MS            20000u
 #else
-#define TURN_ANGLE_DEG             90.0f
-#define TURN_PRECISION_DEG         0.2f
-#define TURN_FINE_MAX_ATTEMPTS     20u
-#define TURN_TIMEOUT_MS            12000u
+#define TURN_ANGLE_DEG             VEHICLE_TURN_ANGLE_DEG
+#define TURN_PRECISION_DEG         VEHICLE_TURN_PRECISION_DEG
+#define TURN_FINE_MAX_ATTEMPTS     VEHICLE_TURN_FINE_MAX_ATTEMPTS
+#define TURN_TIMEOUT_MS            VEHICLE_TURN_TIMEOUT_MS
 #endif
-#define TURN_PWM_MAX               300
-#define TURN_PWM_MIN               220
-#define TURN_KP                    4.0f
-#define TURN_APPROACH_WINDOW_DEG   20.0f
-#define TURN_PWM_APPROACH_MIN      160
-#define TURN_FINE_ENTRY_DEG        3.0f
-#define TURN_SETTLE_RATE_DPS       1.0f
-#define TURN_SETTLE_SAMPLES        15u
-#define TURN_BRAKE_MIN_MS          120u
-#define TURN_FINE_PWM_INITIAL      180
-#define TURN_FINE_PWM_MIN          140
-#define TURN_FINE_PWM_MAX          260
-#define TURN_FINE_PWM_STEP         20
-#define TURN_FINE_PULSE_MS         20u
-#define TURN_FINE_PROGRESS_MIN_DEG 0.05f
-#define TURN_DIRECTION_CHECK_MS    600u
-#define TURN_DIRECTION_PROGRESS_DEG 2.0f
+#define TURN_PWM_MAX               VEHICLE_TURN_PWM_MAX
+#define TURN_PWM_MIN               VEHICLE_TURN_PWM_MIN
+#define TURN_KP                    VEHICLE_TURN_KP
+#define TURN_APPROACH_WINDOW_DEG   VEHICLE_TURN_APPROACH_WINDOW_DEG
+#define TURN_PWM_APPROACH_MIN      VEHICLE_TURN_PWM_APPROACH_MIN
+#define TURN_FINE_ENTRY_DEG        VEHICLE_TURN_FINE_ENTRY_DEG
+#define TURN_SETTLE_RATE_DPS       VEHICLE_TURN_SETTLE_RATE_DPS
+#define TURN_SETTLE_SAMPLES        VEHICLE_TURN_SETTLE_SAMPLES
+#define TURN_BRAKE_MIN_MS          VEHICLE_TURN_BRAKE_MIN_MS
+#define TURN_FINE_PWM_INITIAL      VEHICLE_TURN_FINE_PWM_INITIAL
+#define TURN_FINE_PWM_MIN          VEHICLE_TURN_FINE_PWM_MIN
+#define TURN_FINE_PWM_MAX          VEHICLE_TURN_FINE_PWM_MAX
+#define TURN_FINE_PWM_STEP         VEHICLE_TURN_FINE_PWM_STEP
+#define TURN_FINE_PULSE_MS         VEHICLE_TURN_FINE_PULSE_MS
+#define TURN_FINE_PROGRESS_MIN_DEG VEHICLE_TURN_FINE_PROGRESS_MIN_DEG
+#define TURN_DIRECTION_CHECK_MS    VEHICLE_TURN_DIRECTION_CHECK_MS
+#define TURN_DIRECTION_PROGRESS_DEG VEHICLE_TURN_DIRECTION_PROGRESS_DEG
 #define SEQUENCE_PAUSE_MS          700u
 #define CONTROL_PERIOD_MS          10u
 #define UI_PERIOD_MS               100u
