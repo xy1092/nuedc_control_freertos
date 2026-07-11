@@ -8,6 +8,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".out")
 option(NUEDC_NO_ENCODER "Build the template without wheel encoder feedback" OFF)
 option(NUEDC_USE_K230 "Enable the optional K230 vision UART BSP" OFF)
 option(NUEDC_TEST_LINE_SENSOR "Build the standalone digital grayscale test" OFF)
+option(NUEDC_TEST_MOTOR "Build the standalone button-driven motor test" OFF)
+option(NUEDC_TEST_OLED_IMU "Build the standalone OLED and IMU yaw test" OFF)
 
 if(DEFINED ENV{MSPM0_SDK_ROOT} AND NOT "$ENV{MSPM0_SDK_ROOT}" STREQUAL "")
   set(MSPM0_SDK_ROOT "$ENV{MSPM0_SDK_ROOT}" CACHE PATH "Path to the MSPM0 SDK root")
@@ -122,6 +124,12 @@ set(APP_SOURCES
   ${TDK_ICM45688_SOURCES}
 )
 
+if((NUEDC_TEST_LINE_SENSOR AND NUEDC_TEST_MOTOR) OR
+   (NUEDC_TEST_LINE_SENSOR AND NUEDC_TEST_OLED_IMU) OR
+   (NUEDC_TEST_MOTOR AND NUEDC_TEST_OLED_IMU))
+  message(FATAL_ERROR "Select only one standalone hardware test target.")
+endif()
+
 if(NUEDC_TEST_LINE_SENSOR)
   set(APP_TARGET nuedc_line_sensor_test)
   set(APP_SOURCES
@@ -134,6 +142,33 @@ if(NUEDC_TEST_LINE_SENSOR)
     modules/line_sensor/dev_line_sensor.c
     modules/line_sensor/bsp_adc.c
     modules/telemetry/rtt_log.c
+  )
+elseif(NUEDC_TEST_MOTOR)
+  set(APP_TARGET nuedc_motor_test)
+  set(APP_SOURCES
+    tests/motor_test.c
+    ti_msp_dl_config.c
+    ${MSPM0_STARTUP_FILE}
+    platform/mspm0g3507/drivers/drv_gpio.c
+    platform/mspm0g3507/drivers/drv_hbridge_motor.c
+    platform/mspm0g3507/drivers/drv_pwm.c
+    platform/mspm0g3507/drivers/drv_uart.c
+  )
+elseif(NUEDC_TEST_OLED_IMU)
+  set(APP_TARGET nuedc_oled_imu_test)
+  set(APP_SOURCES
+    tests/oled_imu_test.c
+    ti_msp_dl_config.c
+    ${MSPM0_STARTUP_FILE}
+    ${FREERTOS_SOURCES}
+    platform/mspm0g3507/drivers/drv_spi.c
+    platform/mspm0g3507/drivers/drv_uart.c
+    modules/display/ssd1306_mspm0.c
+    modules/imu/device/dev_icm45688.c
+    modules/imu/bsp_imu.c
+    modules/imu/imu_profile.c
+    system/watchdog.c
+    ${TDK_ICM45688_SOURCES}
   )
 endif()
 
@@ -150,6 +185,7 @@ target_include_directories(${APP_TARGET} PRIVATE
   "${CMAKE_SOURCE_DIR}/platform/mspm0g3507"
   "${CMAKE_SOURCE_DIR}/platform/mspm0g3507/drivers"
   "${CMAKE_SOURCE_DIR}/modules/motor"
+  "${CMAKE_SOURCE_DIR}/modules/display"
   "${CMAKE_SOURCE_DIR}/modules/encoder"
   "${CMAKE_SOURCE_DIR}/modules/line_sensor"
   "${CMAKE_SOURCE_DIR}/modules/imu"

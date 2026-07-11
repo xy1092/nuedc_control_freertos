@@ -50,6 +50,40 @@
       "problemMatcher": []
     },
     {
+      "label": "Build Motor Test",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build_motor_test.sh",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash Motor Test (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "args": [
+        "${workspaceFolder}/build-motor-test/nuedc_motor_test.bin"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": "Build Motor Test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build OLED IMU Yaw Test",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build_oled_imu_test.sh",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash OLED IMU Yaw Test (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "args": [
+        "${workspaceFolder}/build-oled-imu-test/nuedc_oled_imu_test.bin"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": "Build OLED IMU Yaw Test",
+      "problemMatcher": []
+    },
+    {
       "label": "Start J-Link GDB Server",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/jlink_gdb_server.sh",

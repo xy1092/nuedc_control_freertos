@@ -15,7 +15,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "NUEDC_TEST_LINE_SENSOR": "OFF"
+        "NUEDC_TEST_LINE_SENSOR": "OFF",
+        "NUEDC_TEST_MOTOR": "OFF",
+        "NUEDC_TEST_OLED_IMU": "OFF"
       }
     },
     {
@@ -27,7 +29,37 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "NUEDC_TEST_LINE_SENSOR": "ON"
+        "NUEDC_TEST_LINE_SENSOR": "ON",
+        "NUEDC_TEST_MOTOR": "OFF",
+        "NUEDC_TEST_OLED_IMU": "OFF"
+      }
+    },
+    {
+      "name": "motor-test",
+      "displayName": "Button Motor Test",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-motor-test",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "OFF",
+        "NUEDC_TEST_MOTOR": "ON",
+        "NUEDC_TEST_OLED_IMU": "OFF"
+      }
+    },
+    {
+      "name": "oled-imu-test",
+      "displayName": "OLED ICM45688 Yaw Test",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-oled-imu-test",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "OFF",
+        "NUEDC_TEST_MOTOR": "OFF",
+        "NUEDC_TEST_OLED_IMU": "ON"
       }
     }
   ],
@@ -39,6 +71,14 @@
     {
       "name": "line-sensor-build",
       "configurePreset": "line-sensor-test"
+    },
+    {
+      "name": "motor-test-build",
+      "configurePreset": "motor-test"
+    },
+    {
+      "name": "oled-imu-test-build",
+      "configurePreset": "oled-imu-test"
     }
   ]
 }

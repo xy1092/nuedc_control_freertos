@@ -22,11 +22,15 @@
   "files.exclude": {
     "**/.DS_Store": true,
     "**/build-fw": true,
-    "**/build-line-sensor-test": true
+    "**/build-line-sensor-test": true,
+    "**/build-motor-test": true,
+    "**/build-oled-imu-test": true
   },
   "search.exclude": {
     "**/build-fw": true,
-    "**/build-line-sensor-test": true
+    "**/build-line-sensor-test": true,
+    "**/build-motor-test": true,
+    "**/build-oled-imu-test": true
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {

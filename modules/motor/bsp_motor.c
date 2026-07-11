@@ -16,7 +16,7 @@ static const DevMotorConfig s_motor_config[2] = {
             { PWM_MOTOR_INST, PWM_CH_LEFT, PWM_MAX, DRV_PWM_ACTIVE_LOW },
             { MOTOR_A_DIR_PORT, LEFT_AIN1_PIN, 0u },
             { MOTOR_A_DIR_PORT, LEFT_AIN2_PIN, 0u },
-            1,
+            -1,
         },
         {
             { ENC_LEFT_PORT, ENC_LEFT_A_PIN, 0u },
@@ -31,7 +31,7 @@ static const DevMotorConfig s_motor_config[2] = {
             { PWM_MOTOR_INST, PWM_CH_RIGHT, PWM_MAX, DRV_PWM_ACTIVE_LOW },
             { MOTOR_A_DIR_PORT, RIGHT_BIN1_PIN, 0u },
             { MOTOR_B_DIR_PORT, RIGHT_BIN2_PIN, 0u },
-            1,
+            -1,
         },
         {
             { ENC_RIGHT_PORT, ENC_RIGHT_A_PIN, 0u },
