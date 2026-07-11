@@ -98,6 +98,22 @@ cd /home/xy/ti-workspace/projects/nuedc_control_freertos
 
 Artifacts are written to `build-fw/nuedc_control_freertos.{out,hex,bin}`.
 
+## VS Code and J-Link
+
+The workspace configuration is adapted from
+`xy1092/mspm0-cmake-jlink-config`. Open the repository folder in VS Code, then
+use `Terminal -> Run Task`:
+
+- `Build Main Firmware`: build the normal FreeRTOS car firmware.
+- `Flash Main Firmware (J-Link)`: build and flash the normal firmware.
+- `Build Line Sensor Test`: build the standalone seven-channel digital test.
+- `Flash Line Sensor Test (J-Link)`: build and flash only the grayscale test.
+- `Check MSPM0/J-Link Environment`: verify compiler, SDK and probe tools.
+
+`Ctrl+Shift+B` builds the main firmware. The Run and Debug view provides
+separate J-Link entries for the main firmware and line-sensor test. Firmware
+selection is explicit, so building a test does not replace the main artifact.
+
 ## Commands
 
 ```text

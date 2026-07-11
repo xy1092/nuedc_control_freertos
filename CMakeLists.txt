@@ -7,6 +7,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".out")
 
 option(NUEDC_NO_ENCODER "Build the template without wheel encoder feedback" OFF)
 option(NUEDC_USE_K230 "Enable the optional K230 vision UART BSP" OFF)
+option(NUEDC_TEST_LINE_SENSOR "Build the standalone digital grayscale test" OFF)
 
 if(DEFINED ENV{MSPM0_SDK_ROOT} AND NOT "$ENV{MSPM0_SDK_ROOT}" STREQUAL "")
   set(MSPM0_SDK_ROOT "$ENV{MSPM0_SDK_ROOT}" CACHE PATH "Path to the MSPM0 SDK root")
@@ -120,6 +121,21 @@ set(APP_SOURCES
   app/app_tasks.c
   ${TDK_ICM45688_SOURCES}
 )
+
+if(NUEDC_TEST_LINE_SENSOR)
+  set(APP_TARGET nuedc_line_sensor_test)
+  set(APP_SOURCES
+    tests/line_sensor_test.c
+    ti_msp_dl_config.c
+    ${MSPM0_STARTUP_FILE}
+    platform/mspm0g3507/drivers/drv_gpio.c
+    platform/mspm0g3507/drivers/drv_line_sensor.c
+    platform/mspm0g3507/drivers/drv_uart.c
+    modules/line_sensor/dev_line_sensor.c
+    modules/line_sensor/bsp_adc.c
+    modules/telemetry/rtt_log.c
+  )
+endif()
 
 if(NUEDC_USE_K230)
   list(APPEND APP_SOURCES modules/vision/bsp_k230.c)

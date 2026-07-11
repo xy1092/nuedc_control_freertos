@@ -1,0 +1,44 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "mspm0-gcc-debug",
+      "displayName": "MSPM0 Main Firmware (Debug)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-fw",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "OFF"
+      }
+    },
+    {
+      "name": "line-sensor-test",
+      "displayName": "Digital Grayscale Test",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-line-sensor-test",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NUEDC_TEST_LINE_SENSOR": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "main-build",
+      "configurePreset": "mspm0-gcc-debug"
+    },
+    {
+      "name": "line-sensor-build",
+      "configurePreset": "line-sensor-test"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Main Firmware (J-Link)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "jlink",
+      "cwd": "${workspaceFolder}/build-fw",
+      "executable": "${workspaceFolder}/build-fw/nuedc_control_freertos.out",
+      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "serverpath": "${workspaceFolder}/scripts/jlink_gdb_server.sh",
+      "device": "MSPM0G3507",
+      "deviceName": "MSPM0G3507",
+      "interface": "swd",
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "none",
+      "svdFile": "${env:HOME}/.vscode/extensions/ti-development-tools.cortex-debug-dp-mspm0-1.0.2/data/MSPM0G350X.svd",
+      "swoConfig": {"enabled": false},
+      "serverArgs": ["-speed", "1000"],
+      "preLaunchCommands": ["monitor reset halt", "load"],
+      "postLaunchCommands": ["monitor halt"],
+      "preLaunchTask": "Build Main Firmware"
+    },
+    {
+      "name": "Debug Line Sensor Test (J-Link)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "jlink",
+      "cwd": "${workspaceFolder}/build-line-sensor-test",
+      "executable": "${workspaceFolder}/build-line-sensor-test/nuedc_line_sensor_test.out",
+      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "serverpath": "${workspaceFolder}/scripts/jlink_gdb_server.sh",
+      "device": "MSPM0G3507",
+      "deviceName": "MSPM0G3507",
+      "interface": "swd",
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "none",
+      "svdFile": "${env:HOME}/.vscode/extensions/ti-development-tools.cortex-debug-dp-mspm0-1.0.2/data/MSPM0G350X.svd",
+      "swoConfig": {"enabled": false},
+      "serverArgs": ["-speed", "1000"],
+      "preLaunchCommands": ["monitor reset halt", "load"],
+      "postLaunchCommands": ["monitor halt"],
+      "preLaunchTask": "Build Line Sensor Test"
+    }
+  ]
+}

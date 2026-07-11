@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Check MSPM0/J-Link Environment",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/check_env.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Configure Main Firmware",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build.sh",
+      "args": ["--configure-only"],
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Build Main Firmware",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build.sh",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash Main Firmware (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "dependsOrder": "sequence",
+      "dependsOn": "Build Main Firmware",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Line Sensor Test",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build_line_sensor_test.sh",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash Line Sensor Test (J-Link)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/flash_jlink.sh",
+      "args": [
+        "${workspaceFolder}/build-line-sensor-test/nuedc_line_sensor_test.bin"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": "Build Line Sensor Test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start J-Link GDB Server",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/jlink_gdb_server.sh",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Serial Monitor 115200",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/serial_monitor.sh",
+      "args": ["${input:serialPort}", "115200"],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "serialPort",
+      "type": "promptString",
+      "description": "Serial device, for example /dev/ttyACM0 or /dev/ttyUSB0",
+      "default": "/dev/ttyACM0"
+    }
+  ]
+}

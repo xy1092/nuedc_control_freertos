@@ -13,7 +13,7 @@ if [[ -z "${JLINK_EXE:-}" || ! -x "$JLINK_EXE" ]]; then
 fi
 
 if [[ ! -f "$image_file" ]]; then
-  echo "未找到待烧录二进制: $image_file"
+  echo "未找到待烧录固件: $image_file"
   echo '请先完成 Build。'
   exit 2
 fi
@@ -22,10 +22,19 @@ mkdir -p "$BUILD_DIR/tmp"
 cmd_file="$(mktemp "$BUILD_DIR/tmp/jlink_cmd.XXXXXX")"
 trap 'rm -f "$cmd_file"' EXIT
 
+case "$image_file" in
+  *.bin)
+    load_cmd="loadfile $image_file, $JLINK_FLASH_ADDR"
+    ;;
+  *)
+    load_cmd="loadfile $image_file"
+    ;;
+esac
+
 cat >"$cmd_file" <<EOF
 r
 h
-loadfile $image_file, 0x00000000
+$load_cmd
 r
 g
 q
@@ -34,7 +43,7 @@ EOF
 set +e
 jlink_output="$("$JLINK_EXE" \
   -device "$JLINK_DEVICE" \
-  -if SWD \
+  -if "$JLINK_IF" \
   -speed "$JLINK_SPEED_KHZ" \
   -autoconnect 1 \
   -NoGui 1 \

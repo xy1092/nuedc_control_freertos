@@ -2,29 +2,29 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BUILD_DIR="${BUILD_DIR:-$PROJECT_DIR/build-fw}"
-CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE:-$PROJECT_DIR/cmake/toolchains/arm-none-eabi-gcc.cmake}"
+source "$SCRIPT_DIR/env.sh"
 
-if [[ -z "${MSPM0_SDK_ROOT:-}" ]]; then
-  for sdk_dir in \
-    "$HOME/ti/mspm0_sdk_2_10_00_04/mspm0_sdk_2_10_00_04" \
-    "$HOME/ti/mspm0_sdk_2_10_00_04" \
-    "$HOME/ti/mspm0_sdk_2_07_00_05/mspm0_sdk_2_07_00_05" \
-    "$HOME/ti/mspm0_sdk_2_07_00_05" \
-    "/opt/ti/mspm0_sdk"
-  do
-    if [[ -f "$sdk_dir/.metadata/product.json" ]]; then
-      export MSPM0_SDK_ROOT="$sdk_dir"
-      break
-    fi
-  done
+configure_only=0
+if [[ "${1:-}" == "--configure-only" ]]; then
+  configure_only=1
 fi
 
-mkdir -p "$BUILD_DIR"
+if [[ -z "${MSPM0_SDK_ROOT:-}" || ! -f "$MSPM0_SDK_ROOT/.metadata/product.json" ]]; then
+  echo "MSPM0 SDK not found. Set MSPM0_SDK_ROOT."
+  exit 2
+fi
 
-cmake -S "$PROJECT_DIR" -B "$BUILD_DIR" -G Ninja \
+mkdir -p "$BUILD_DIR/tmp"
+export TMPDIR="${TMPDIR:-$BUILD_DIR/tmp}"
+
+"$CMAKE_BIN" -S "$PROJECT_DIR" -B "$BUILD_DIR" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE" \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DMSPM0_SDK_ROOT="$MSPM0_SDK_ROOT"
-cmake --build "$BUILD_DIR"
+
+if [[ "$configure_only" -eq 1 ]]; then
+  exit 0
+fi
+
+exec "$CMAKE_BIN" --build "$BUILD_DIR"

@@ -3,6 +3,13 @@ set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+export MSPM0_TARGET_NAME="${MSPM0_TARGET_NAME:-nuedc_control_freertos}"
+export BUILD_DIR="${BUILD_DIR:-$PROJECT_DIR/build-fw}"
+export ELF_FILE="${ELF_FILE:-$BUILD_DIR/$MSPM0_TARGET_NAME.out}"
+export BIN_FILE="${BIN_FILE:-$BUILD_DIR/$MSPM0_TARGET_NAME.bin}"
+export HEX_FILE="${HEX_FILE:-$BUILD_DIR/$MSPM0_TARGET_NAME.hex}"
+export CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE:-$PROJECT_DIR/cmake/toolchains/arm-none-eabi-gcc.cmake}"
+
 export CMAKE_BIN="${CMAKE_BIN:-$(command -v cmake || true)}"
 export NINJA_BIN="${NINJA_BIN:-$(command -v ninja || true)}"
 export ARM_GCC_BIN="${ARM_GCC_BIN:-$(command -v arm-none-eabi-gcc || true)}"
@@ -18,6 +25,7 @@ if [[ -z "${MSPM0_SDK_ROOT:-}" ]]; then
     "$HOME/ti/mspm0_sdk_2_10_00_04" \
     "$HOME/ti/mspm0_sdk_2_07_00_05/mspm0_sdk_2_07_00_05" \
     "$HOME/ti/mspm0_sdk_2_07_00_05" \
+    "$HOME/ti/mspm0_sdk" \
     "/opt/ti/mspm0_sdk"
   do
     if [[ -f "$sdk_dir/.metadata/product.json" ]]; then
@@ -55,10 +63,8 @@ if [[ -z "${JLINK_GDB_SERVER:-}" && -n "${JLINK_EXE:-}" ]]; then
   done
 fi
 
-export BUILD_DIR="${BUILD_DIR:-$PROJECT_DIR/build-fw}"
-export ELF_FILE="${ELF_FILE:-$BUILD_DIR/nuedc_control_freertos.out}"
-export BIN_FILE="${BIN_FILE:-$BUILD_DIR/nuedc_control_freertos.bin}"
-export HEX_FILE="${HEX_FILE:-$BUILD_DIR/nuedc_control_freertos.hex}"
-export CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE:-$PROJECT_DIR/cmake/toolchains/arm-none-eabi-gcc.cmake}"
 export JLINK_DEVICE="${JLINK_DEVICE:-MSPM0G3507}"
 export JLINK_SPEED_KHZ="${JLINK_SPEED_KHZ:-1000}"
+export JLINK_IF="${JLINK_IF:-SWD}"
+export JLINK_FLASH_ADDR="${JLINK_FLASH_ADDR:-0x00000000}"
+export MSPM0_SVD_FILE="${MSPM0_SVD_FILE:-MSPM0G350X.svd}"

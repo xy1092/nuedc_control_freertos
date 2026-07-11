@@ -1,0 +1,39 @@
+{
+  "cmake.generator": "Ninja",
+  "cmake.useCMakePresets": "always",
+  "cmake.defaultConfigurePreset": "mspm0-gcc-debug",
+  "cmake.defaultBuildPreset": "main-build",
+  "cmake.configureOnOpen": false,
+  "cmake.showOptionsMovedNotification": false,
+  "cmake.buildDirectory": "${workspaceFolder}/build-fw",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "debug.openDebug": "openOnDebugBreak",
+  "C_Cpp.default.compilerPath": "/usr/bin/arm-none-eabi-gcc",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build-fw/compile_commands.json",
+  "C_Cpp.default.intelliSenseMode": "gcc-arm",
+  "C_Cpp.default.cStandard": "c11",
+  "C_Cpp.default.defines": [
+    "__MSPM0G3507__"
+  ],
+  "files.associations": {
+    "ti_msp_dl_config.h": "c",
+    "*.syscfg": "javascript"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/build-fw": true,
+    "**/build-line-sensor-test": true
+  },
+  "search.exclude": {
+    "**/build-fw": true,
+    "**/build-line-sensor-test": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.syscfg": "ti_msp_dl_config.c, ti_msp_dl_config.h, device.opt, device.lds.genlibs, device_linker.lds"
+  },
+  "cortex-debug.armToolchainPath": "/usr/bin",
+  "cortex-debug.gdbPath": "/usr/bin/arm-none-eabi-gdb",
+  "ti-embedded-debug.automaticallyRunDependencyCheck": true,
+  "ti-embedded-debug.armToolchainPath": "/usr/bin"
+}

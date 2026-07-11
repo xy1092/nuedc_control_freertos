@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "marus25.cortex-debug",
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools",
+    "ti-development-tools.cortex-debug-dp-mspm0",
+    "ti-development-tools.ti-embedded-debug",
+    "ti-development-tools.ti-embedded-development"
+  ],
+  "unwantedRecommendations": [
+    "ms-vscode.cpptools-extension-pack",
+    "platformio.platformio-ide"
+  ]
+}
