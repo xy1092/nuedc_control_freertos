@@ -4,6 +4,10 @@ Hardware tests are separate CMake targets. They reuse the production board
 bindings without starting the production mission application. Some tests run
 their own focused FreeRTOS control task.
 
+后续实车校准顺序、记录格式和完成标准见
+`docs/CALIBRATION_ROADMAP.zh-CN.md`。每项参数必须先在独立测试固件中通过，
+再写入正式控制层。
+
 ## Digital Grayscale Sensor
 
 Build and flash from VS Code with:

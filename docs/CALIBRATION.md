@@ -23,6 +23,9 @@ The line-tracking PID and wheel-speed PID are initial template values, not
 course-calibrated values. Tune them only after the course layout and operating
 speed are fixed.
 
+The pending calibration sequence and acceptance criteria are maintained in
+`docs/CALIBRATION_ROADMAP.zh-CN.md`.
+
 ## Control Use
 
 Production odometry converts each encoder with its own pulse-per-centimeter

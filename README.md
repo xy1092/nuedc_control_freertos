@@ -101,6 +101,11 @@ profile and precise stationary 90-degree turn values are recorded in
 The line-tracking and wheel-speed PID gains remain initial template values;
 they have not yet been calibrated on the final course.
 
+The remaining hands-on work is tracked in the Chinese checklist
+`docs/CALIBRATION_ROADMAP.zh-CN.md`, covering wheel-speed PID, encoder turning,
+smooth moving turns, digital line tracking, braking, voltage compensation and
+endurance tests.
+
 ## Build
 
 ```bash
